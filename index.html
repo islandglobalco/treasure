@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Treasure.gift</title>
-<meta name="description" content="Pull the lever, win the perfect gift. AI-picked treasure chests of gifts, ready to order on Amazon.">
+<meta name="description" content="Tell us who it's for. We'll pack a treasure chest of gifts they'll love, ready to order on Amazon.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
 <style>
-/* Layout: a pirate-cove slot cabinet (search) up top, then a hold of 12 open treasure chests per side. Deliberately one dark, lantern-lit look. */
+/* Layout: a closed treasure chest that opens to reveal the gifts (search) up top, then a hold of 12 open chests per side. Deliberately one dark, lantern-lit look. */
 :root {
   --night: #071A22;        /* deep cove water */
   --night-2: #0E2D3A;
@@ -25,7 +25,6 @@
   --mist: #9FC0C4;
   --display: "Pirata One", "Georgia", serif;
   --body: "Alegreya Sans", "Trebuchet MS", system-ui, sans-serif;
-  --cove: url("img/cove.webp");
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -34,9 +33,7 @@ body {
   background-color: var(--night);
   background-image:
     radial-gradient(ellipse 70% 45% at 50% 0%, rgba(242, 193, 78, .18), transparent 70%),
-    linear-gradient(180deg, rgba(7, 26, 34, .25) 0%, rgba(7, 26, 34, .82) 520px, var(--night) 900px),
-    var(--cove, none);
-  background-size: auto, auto, 100% auto;
+    linear-gradient(180deg, rgba(7, 26, 34, .25) 0%, rgba(7, 26, 34, .82) 520px, var(--night) 900px);
   background-repeat: no-repeat;
 }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: max(16px, 4vw); }
@@ -63,84 +60,37 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
 .hero h1 { font-size: clamp(3rem, 10vw, 7.2rem); line-height: .9; letter-spacing: .01em; }
 .hero .lede { margin: 0; max-width: 50ch; color: var(--parch); font-size: 1.15rem; }
 
-/* ---------- the slot cabinet ---------- */
-.cabinet {
-  position: relative; width: min(760px, 100%); margin-top: 8px;
-  padding: 26px clamp(14px, 3vw, 28px) 24px; border-radius: 28px 28px 18px 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 30%),
-    repeating-linear-gradient(90deg, var(--wood) 0 46px, #4c2b13 46px 48px);
-  border: 6px solid var(--gold);
-  box-shadow: inset 0 0 0 3px var(--gold-lo), 0 0 0 3px #3a2108, 0 30px 60px rgba(0, 0, 0, .6), 0 0 80px rgba(242, 193, 78, .25);
-}
-/* chasing marquee bulbs */
-.cabinet::before, .cabinet::after {
-  content: ""; position: absolute; inset: -16px; border-radius: 40px 40px 30px 30px; pointer-events: none;
-  background:
-    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 0 / 28px 28px repeat-x,
-    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 100% / 28px 28px repeat-x,
-    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 0 / 28px 28px repeat-y,
-    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 100% 0 / 28px 28px repeat-y;
-  animation: bulbs 1s steps(1) infinite;
-}
-.cabinet::after { background-position: 14px 0, 14px 100%, 0 14px, 100% 14px; animation-delay: .5s; }
-@keyframes bulbs { 0% { opacity: 1; } 50% { opacity: .15; } }
-.cabinet.win::before, .cabinet.win::after { animation-duration: .18s; }
+/* ---------- the finder: a chest that opens on search ---------- */
+.finder { width: min(720px, 100%); display: grid; gap: 6px; justify-items: center; margin-top: 4px; }
+.hero-chest { width: min(320px, 78%); container-type: inline-size; }
+.chest.closed .lid { transform: rotateX(0deg); }
+.chest.closed .hoard { transform: translateY(26%) scale(.82); opacity: 0; }
+.chest.closed .chest-glow { opacity: .25; transform: scale(.7); }
+.chest.rattle { animation: rattle .55s ease-in-out infinite; }
+@keyframes rattle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-2.5deg); } 40% { transform: rotate(2deg); } 60% { transform: rotate(-1.5deg); } 80% { transform: rotate(1deg); } }
 
-.reels {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px;
-  background: #120a03; border-radius: 16px; border: 4px solid var(--gold-lo);
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, .9);
-}
-.reel {
-  position: relative; height: 128px; overflow: hidden; border-radius: 10px;
-  background: linear-gradient(180deg, #c9b48a, var(--parch) 22%, var(--bone) 50%, var(--parch) 78%, #c9b48a);
-  box-shadow: inset 0 14px 18px -8px rgba(0, 0, 0, .7), inset 0 -14px 18px -8px rgba(0, 0, 0, .7);
-}
-.strip { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
-.cell { height: 128px; display: grid; place-items: center; font-size: 68px; line-height: 1; }
-.cell img { width: 92px; height: 92px; object-fit: contain; }
-.reel.spinning .strip { filter: blur(3px); }
-.payline { position: absolute; left: 6px; right: 6px; top: 50%; height: 3px; margin-top: -1.5px; background: rgba(196, 35, 47, .55); pointer-events: none; }
-.cabinet.win .reel { animation: flash .25s 6 alternate; }
-@keyframes flash { to { box-shadow: inset 0 0 0 4px var(--gold-hi), 0 0 30px var(--gold); } }
-
-.lever {
-  position: absolute; right: -46px; top: 40px; width: 40px; height: 170px; border: 0; background: none; cursor: pointer; padding: 0;
-}
-.lever::before { /* arm */
-  content: ""; position: absolute; left: 16px; top: 22px; width: 9px; height: 120px; border-radius: 5px;
-  background: linear-gradient(90deg, #888, #eee 40%, #777); transform-origin: 50% 100%; transition: transform .25s ease-in;
-}
-.lever::after { /* knob */
-  content: ""; position: absolute; left: 4px; top: 0; width: 34px; height: 34px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ff8a8a, var(--ruby) 50%, #5d0b10); box-shadow: 0 4px 10px rgba(0, 0, 0, .6);
-  transition: transform .25s ease-in;
-}
-.lever.pulled::before { transform: scaleY(-.2); }
-.lever.pulled::after { transform: translateY(136px); }
-.lever-base { position: absolute; right: -20px; top: 150px; width: 22px; height: 46px; border-radius: 0 10px 10px 0; background: linear-gradient(90deg, var(--gold-lo), var(--gold)); }
-
-.slip { margin-top: 18px; display: grid; gap: 10px; text-align: left; }
-.slip label { font-family: var(--display); font-size: 1.6rem; color: var(--gold); line-height: 1; }
+.slip { width: 100%; display: grid; gap: 10px; text-align: left;
+  background: linear-gradient(180deg, #f4e6c6, var(--parch)); color: var(--ink);
+  border-radius: 18px; padding: clamp(16px, 3vw, 24px); border: 3px solid var(--gold-lo);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .5), 0 0 60px rgba(242, 193, 78, .18); }
+.slip label { font-family: var(--display); font-size: 1.7rem; color: #5a3410; line-height: 1; }
 .slip-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
 .slip textarea {
-  flex: 1 1 300px; min-width: 0; resize: none; border-radius: 10px; border: 3px solid var(--gold-lo);
-  background: var(--parch); color: var(--ink); font: 500 1.15rem/1.4 var(--body); padding: 12px 14px;
-  box-shadow: inset 0 2px 8px rgba(80, 50, 10, .35);
+  flex: 1 1 300px; min-width: 0; resize: none; border-radius: 10px; border: 2px solid #c9a86a;
+  background: #fffaf0; color: var(--ink); font: 500 1.15rem/1.4 var(--body); padding: 12px 14px;
 }
-.slip textarea::placeholder { color: #7d6649; }
-.spin {
-  appearance: none; border: 0; cursor: pointer; border-radius: 14px; padding: 14px 26px;
-  font: 400 1.6rem/1 var(--display); color: #3a1d02; letter-spacing: .02em;
+.slip textarea::placeholder { color: #8a7352; }
+.slip textarea:focus { outline: none; border-color: var(--gold-lo); box-shadow: 0 0 0 3px rgba(242, 193, 78, .45); }
+.cta {
+  appearance: none; border: 0; cursor: pointer; border-radius: 12px; padding: 14px 24px;
+  font: 400 1.5rem/1 var(--display); color: #3a1d02; letter-spacing: .02em;
   background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-lo));
-  box-shadow: 0 6px 0 #6b4108, 0 10px 24px rgba(0, 0, 0, .5), inset 0 2px 0 rgba(255, 255, 255, .6);
-  transition: transform .08s, box-shadow .08s;
+  box-shadow: 0 4px 0 #6b4108, 0 8px 18px rgba(0, 0, 0, .35), inset 0 2px 0 rgba(255, 255, 255, .6);
 }
-.spin:hover { filter: brightness(1.08); }
-.spin:active { transform: translateY(5px); box-shadow: 0 1px 0 #6b4108, 0 4px 10px rgba(0, 0, 0, .5); }
-.spin:disabled { cursor: progress; filter: saturate(.6); }
-.status { min-height: 1.3em; margin: 0; color: var(--gold-hi); font-size: .98rem; }
+.cta:hover { filter: brightness(1.06); }
+.cta:active { transform: translateY(3px); box-shadow: 0 1px 0 #6b4108, 0 4px 10px rgba(0, 0, 0, .35); }
+.cta:disabled { cursor: progress; filter: saturate(.6); }
+.status { min-height: 1.3em; margin: 0; color: #7a4b0c; font-size: .98rem; font-weight: 500; }
 .examples { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 760px; }
 .example {
   appearance: none; cursor: pointer; border-radius: 999px; padding: 7px 14px; font: 500 .95rem var(--body);
@@ -170,7 +120,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
   background: radial-gradient(ellipse at 50% 30%, #a3202c, #5a0b13 75%);
   box-shadow: inset 0 0 0 5px rgba(242, 193, 78, .5);
 }
-.hoard { left: 13%; right: 13%; bottom: 28%; height: 44%; z-index: 2; transition: transform .6s cubic-bezier(.25, 1.6, .45, 1); }
+.hoard { left: 13%; right: 13%; bottom: 28%; height: 44%; z-index: 2; transition: transform .7s cubic-bezier(.25, 1.6, .45, 1) .12s, opacity .4s .12s; }
 .coins {
   position: absolute; left: -2%; right: -2%; bottom: 0; height: 52%;
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
@@ -187,12 +137,12 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
 .gem-sapphire { left: 40%; bottom: 6%; background: linear-gradient(135deg, #b3d4ff, #1f5fd1 50%, #0a2357); width: 9%; }
 .gem-diamond { left: 88%; bottom: 10%; background: linear-gradient(135deg, #fff, #cfefff 40%, #8fc8e8 60%, #fff); }
 .loot-item {
-  left: var(--x); bottom: var(--y); font-size: 15cqi; line-height: 1; z-index: 1;
+  position: absolute; display: block; left: var(--x); bottom: var(--y); font-size: 15cqi; line-height: 1; z-index: 1;
   transform: translateX(-50%) rotate(var(--r)) scale(var(--k));
   filter: drop-shadow(0 0 2px var(--gold-hi)) drop-shadow(0 0 7px rgba(255, 200, 70, .9)) drop-shadow(0 3px 2px rgba(60, 30, 0, .6));
   transition: transform .5s cubic-bezier(.25, 1.7, .45, 1) var(--d);
 }
-.loot-item img { display: block; width: 1.2em; height: 1.2em; object-fit: contain; border-radius: 4px; }
+.loot-item img { display: block; width: 1.75em; height: 1.75em; object-fit: contain; }
 .glint {
   position: absolute; left: var(--x); bottom: var(--y); width: 7cqi; aspect-ratio: 1; z-index: 3; margin-left: -3.5cqi;
   background: radial-gradient(circle, #fff 0 18%, rgba(255, 245, 200, .9) 30%, transparent 70%);
@@ -223,7 +173,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
 
 /* ---------- result ---------- */
 .result {
-  display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: 10px 32px; align-items: center;
+  display: grid; gap: 10px;
   background: linear-gradient(180deg, rgba(14, 45, 58, .92), rgba(7, 26, 34, .92));
   border: 3px solid var(--gold-lo); border-radius: 22px; padding: clamp(18px, 4vw, 34px); margin-bottom: 48px; scroll-margin-top: 16px;
   box-shadow: 0 0 60px rgba(242, 193, 78, .2);
@@ -238,16 +188,15 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
 .result-foot { margin: 16px 0 0; color: var(--mist); font-size: .95rem; overflow-wrap: anywhere; }
 .result-foot .linkish { margin-left: 10px; }
 .linkish { appearance: none; background: none; border: 0; padding: 0; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
-@media (max-width: 700px) { .result { grid-template-columns: 1fr; } .result-chest { max-width: 300px; margin: 0 auto; width: 100%; } }
 
 .items { list-style: none; margin: 14px 0 0; padding: 0; }
 .item { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 6px 14px; padding: 12px 0; border-top: 1px solid rgba(242, 193, 78, .25); }
 .item-icon {
-  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 26px;
+  width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 28px;
   background: radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold) 45%, var(--gold-lo)); box-shadow: 0 0 0 2px #6b4108, 0 0 14px rgba(242, 193, 78, .45);
   transition: transform .25s cubic-bezier(.25, 1.7, .45, 1);
 }
-.item-icon img { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; }
+.item-icon img { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(40, 20, 0, .5)); }
 .item:hover .item-icon { transform: scale(1.18) rotate(-6deg); }
 .item-text { min-width: 0; display: grid; gap: 2px; }
 .item-name { font-weight: 700; }
@@ -324,9 +273,8 @@ footer p { margin: 0 0 6px; max-width: 72ch; }
 /* coin-burst canvas */
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
-@media (max-width: 820px) { .lever, .lever-base { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .cabinet::before, .cabinet::after, .glint, .cabinet.win .reel { animation: none; }
+  .glint, .chest.rattle { animation: none; }
   .glint { opacity: .8; }
   .lid, .hoard, .loot-item, .chest-glow { transition: none; }
 }
@@ -341,22 +289,16 @@ footer p { margin: 0 0 6px; max-width: 72ch; }
   </header>
 
   <section class="hero">
-    <h1 class="gilt">Pull the lever.<br>Win the perfect gift.</h1>
-    <p class="lede">Tell us who it's for, what they love, and what you'll spend. The reels pick a chest of gifts you can order on Amazon today.</p>
+    <h1 class="gilt">Gift baskets<br>worth treasuring.</h1>
+    <p class="lede">Tell us who it's for, what they love, and what you'd like to spend. We'll open a chest of gifts that fit, each ready to order on Amazon.</p>
 
-    <form class="cabinet" id="search" autocomplete="off">
-      <div class="reels" aria-hidden="true">
-        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
-        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
-        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
-      </div>
-      <button class="lever" id="lever" type="submit" aria-label="Pull the lever to fill the chest" tabindex="-1"></button>
-      <span class="lever-base" aria-hidden="true"></span>
+    <form class="finder" id="search" autocomplete="off">
+      <div class="hero-chest" id="hero-chest" aria-hidden="true"></div>
       <div class="slip">
-        <label for="q">Who's the treasure for?</label>
+        <label for="q">Who are you shopping for?</label>
         <div class="slip-row">
           <textarea id="q" name="q" rows="2" maxlength="300" placeholder="My dad. Loves grilling and old westerns. About $150."></textarea>
-          <button class="spin" id="go" type="submit">Fill the chest</button>
+          <button class="cta" id="go" type="submit">Open the chest</button>
         </div>
         <p class="status" id="status" role="status"></p>
       </div>
@@ -395,8 +337,8 @@ footer p { margin: 0 0 6px; max-width: 72ch; }
 
   <section class="how">
     <div><h3>Describe them</h3><p>A sentence is enough. Mention their hobbies, who they are to you, and your budget.</p></div>
-    <div><h3>Pull the lever</h3><p>Our AI packs a chest of three to five gifts that fit together and fit the budget.</p></div>
-    <div><h3>Claim your loot</h3><p>Each gift opens on Amazon, already filtered to the right price range.</p></div>
+    <div><h3>Open the chest</h3><p>We pick three to five gifts that go together and fit your budget.</p></div>
+    <div><h3>Order on Amazon</h3><p>Each gift opens on Amazon, already filtered to the right price range.</p></div>
   </section>
 
   <footer>
@@ -421,6 +363,7 @@ footer p { margin: 0 0 6px; max-width: 72ch; }
 </dialog>
 
 <script src="baskets.js"></script>
+<script src="assets.js"></script>
 <script src="fx.js"></script>
 <script src="app.js"></script>
 <script>document.getElementById("yr").textContent = new Date().getFullYear();</script>

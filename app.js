@@ -63,7 +63,10 @@
   function renderFor(it, v) {
     if (it.img) return it.img;
     var r = iconRow(it), key = r ? r[2] : "gift";
-    var n = (ASSETS.gifts || {})[key];
+    var g = ASSETS.gifts || {};
+    var n = g[key];
+    // No photo for this gift type yet: show a wrapped-gift photo rather than mixing in an emoji.
+    if (!n && g.gift) { key = "gift"; n = g.gift; }
     if (!n) return "";
     return "img/gifts/" + key + "-" + ((v || 0) % n) + ".png";
   }
@@ -98,9 +101,10 @@
   function chest(items, opts) {
     var list = items.slice(0, 5);
     var spots = SPOTS[list.length] || SPOTS[5];
+    var vs = variants(list);
     var loot = list.map(function (it, i) {
       var s = spots[i];
-      return '<span class="loot-item" style="--x:' + s[0] + "%;--y:" + s[1] + "%;--r:" + s[2] + "deg;--k:" + s[3] + ";--d:" + (i * 0.06) + 's">' + glyph(it) + "</span>";
+      return '<span class="loot-item" style="--x:' + s[0] + "%;--y:" + s[1] + "%;--r:" + s[2] + "deg;--k:" + s[3] + ";--d:" + (i * 0.06) + 's">' + glyph(it, vs[i]) + "</span>";
     }).join("");
     var glints = GLINTS.map(function (g) {
       return '<i class="glint" style="--x:' + g[0] + "%;--y:" + g[1] + "%;--t:" + g[2] + 's"></i>';
@@ -117,9 +121,10 @@
 
   // ---------- Basket rendering ----------
   function itemRows(items) {
-    return items.map(function (it) {
+    var vs = variants(items);
+    return items.map(function (it, i) {
       return '<li class="item">' +
-        '<span class="item-icon">' + glyph(it) + "</span>" +
+        '<span class="item-icon">' + glyph(it, vs[i]) + "</span>" +
         '<div class="item-text"><span class="item-name">' + esc(it.n) + "</span>" +
         (it.why ? '<span class="item-why">' + esc(it.why) + "</span>" : "") + "</div>" +
         '<span class="item-price">about ' + money(it.p) + "</span>" +
@@ -282,7 +287,6 @@
   function renderResult(r, query) {
     var box = document.getElementById("result");
     box.innerHTML =
-      '<div class="result-chest">' + chest(r.items, { big: true }) + "</div>" +
       '<div class="result-body"><div class="result-head"><h2>' + esc(r.title) + "</h2>" +
       '<p class="result-total">About ' + money(total(r.items)) + " in all</p></div>" +
       (r.note ? '<p class="result-note">' + esc(r.note) + "</p>" : "") +
@@ -292,24 +296,33 @@
     document.getElementById("reroll").addEventListener("click", function () { runSearch(query); });
   }
 
-  var spinning = false;
+  // ---------- Search: the hero chest rattles while we pick, then opens on the gifts ----------
+  var busy = false;
+  function heroChest(items, closed) {
+    var host = document.getElementById("hero-chest");
+    host.innerHTML = chest(items, { big: true });
+    var c = host.querySelector(".chest");
+    if (closed) c.classList.add("closed");
+    return c;
+  }
+
   function runSearch(query) {
-    if (spinning) return;
-    spinning = true;
+    if (busy) return;
+    busy = true;
     var FX = window.FX;
     var btn = document.getElementById("go");
     var status = document.getElementById("status");
-    var cab = document.getElementById("search");
-    var lever = document.getElementById("lever");
+    var finder = document.getElementById("search");
     var smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-    btn.disabled = true; btn.textContent = "Spinning…"; status.textContent = "";
-    cab.classList.remove("win");
-    var r0 = cab.getBoundingClientRect();
-    if (r0.top < 0 || r0.bottom > innerHeight) cab.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
-    lever.classList.add("pulled"); setTimeout(function () { lever.classList.remove("pulled"); }, 450);
-    if (FX) { FX.sfx.lever(); FX.reels.start(); }
+    btn.disabled = true; btn.textContent = "Opening…"; status.textContent = "Picking gifts for them…";
+    var f0 = finder.getBoundingClientRect();
+    if (f0.top < 0 || f0.bottom > innerHeight) finder.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
 
-    var minSpin = new Promise(function (res) { setTimeout(res, smooth ? 1500 : 0); });
+    var c = document.querySelector("#hero-chest .chest");
+    if (!c || !c.classList.contains("closed")) c = heroChest([], true);
+    c.classList.add("rattle");
+
+    var minWait = new Promise(function (res) { setTimeout(res, smooth ? 1100 : 0); });
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
     var curate = fetch("/api/curate", {
@@ -320,29 +333,23 @@
       .catch(function () { return localCurate(query); })
       .then(function (r) { clearTimeout(timer); return r; });
 
-    Promise.all([curate, minSpin]).then(function (v) {
+    Promise.all([curate, minWait]).then(function (v) {
       var r = v[0];
-      var finals = r.items.slice(0, 3).map(function (it) { var src = renderFor(it); return src ? { img: src } : { e: iconFor(it) }; });
-      return (FX ? FX.reels.stop(finals) : Promise.resolve()).then(function () { return r; });
-    }).then(function (r) {
-      cab.classList.add("win");
-      if (FX) {
-        FX.sfx.jackpot();
-        var rr = cab.querySelector(".reels").getBoundingClientRect();
-        FX.burst(rr.left + rr.width / 2, rr.top + rr.height / 2, 90);
-      }
-      status.textContent = "Jackpot! Your chest is packed below.";
+      // Load the gifts into a closed chest, then let it open.
+      var opened = heroChest(r.items, true);
+      void opened.offsetWidth;
+      if (FX) FX.sfx.unlock();
       setTimeout(function () {
-        renderResult(r, query);
-        var box = document.getElementById("result");
-        box.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
-        setTimeout(function () {
-          var c = box.querySelector(".result-chest").getBoundingClientRect();
-          if (FX) { FX.burst(c.left + c.width / 2, c.top + c.height * 0.45, 50); FX.sfx.creak(); }
-        }, smooth ? 650 : 0);
-        btn.disabled = false; btn.textContent = "Fill the chest"; spinning = false;
-        setTimeout(function () { cab.classList.remove("win"); }, 1600);
-      }, smooth ? 900 : 0);
+        opened.classList.remove("closed");
+        if (FX) {
+          FX.sfx.creak(); FX.sfx.chime();
+          var b = opened.getBoundingClientRect();
+          FX.burst(b.left + b.width / 2, b.top + b.height * 0.45, 45);
+        }
+      }, smooth ? 220 : 0);
+      status.textContent = "Here's what we packed. Every gift is listed below.";
+      renderResult(r, query);
+      btn.disabled = false; btn.textContent = "Open the chest"; busy = false;
     });
   }
 
@@ -353,6 +360,7 @@
       .catch(function () {});
 
     renderGrid();
+    heroChest([], true);
 
     document.getElementById("search").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -396,9 +404,9 @@
         // The dialog sits in the top layer, so the effects canvas moves inside it while it's open.
         document.getElementById("basket-dialog").appendChild(document.getElementById("fx"));
         if (window.FX) {
-          window.FX.sfx.jackpot();
+          window.FX.sfx.chime();
           var c = document.getElementById("dlg-chest").getBoundingClientRect();
-          window.FX.burst(c.left + c.width / 2, c.top + c.height * 0.5, 45);
+          window.FX.burst(c.left + c.width / 2, c.top + c.height * 0.5, 30);
         }
       }
     });

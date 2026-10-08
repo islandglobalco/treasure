@@ -1,4 +1,4 @@
-// Treasure.gift effects: synthesized sound (no audio files), coin-burst particles, and the slot reels.
+// Treasure effects: synthesized sound (no audio files) and a sparkle-and-coin burst for the chest reveal.
 (function () {
   "use strict";
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -40,19 +40,17 @@
   }
   var lastCreak = 0;
   var SFX = {
-    coin: function (d) { d = d || 0; tone(2637, d, 0.18, "triangle", 0.18); tone(3520, d + 0.04, 0.3, "sine", 0.14); },
-    tick: function () { tone(900 + Math.random() * 200, 0, 0.03, "square", 0.04); },
-    thunk: function () { tone(160, 0, 0.18, "sine", 0.5, 60); noise(0, 0.08, 0.25, 900, 300); tone(1800, 0.01, 0.05, "square", 0.05); },
-    lever: function () { noise(0, 0.22, 0.25, 400, 1600); tone(220, 0.18, 0.15, "sawtooth", 0.08, 110); },
+    coin: function (d) { d = d || 0; tone(2637, d, 0.18, "triangle", 0.12); tone(3520, d + 0.04, 0.3, "sine", 0.09); },
+    // the lock clicking and the lid creaking open
+    unlock: function () { noise(0, 0.05, 0.3, 2500, 1800); tone(1400, 0.02, 0.05, "square", 0.04); },
     creak: function () {
       var now = Date.now(); if (now - lastCreak < 350) return; lastCreak = now;
-      noise(0, 0.32, 0.12, 300, 900); tone(140, 0, 0.3, "sawtooth", 0.03, 210);
-      for (var i = 0; i < 3; i++) SFX.coin(0.18 + i * 0.07 + Math.random() * 0.03);
+      noise(0, 0.32, 0.1, 300, 900); tone(140, 0, 0.3, "sawtooth", 0.025, 210);
+      for (var i = 0; i < 2; i++) SFX.coin(0.2 + i * 0.08 + Math.random() * 0.03);
     },
-    jackpot: function () {
-      [523, 659, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * 0.09, 0.4, "square", 0.08); });
-      tone(1047, 0.5, 0.9, "triangle", 0.15); tone(1319, 0.5, 0.9, "triangle", 0.12); tone(1568, 0.5, 0.9, "triangle", 0.1);
-      for (var i = 0; i < 16; i++) SFX.coin(0.4 + i * 0.06 + Math.random() * 0.05);
+    // a soft music-box shimmer when the gifts appear
+    chime: function () {
+      [1047, 1319, 1568, 2093].forEach(function (f, i) { tone(f, i * 0.11, 1.1, "sine", 0.09); tone(f * 2, i * 0.11 + 0.01, 0.6, "triangle", 0.025); });
     },
   };
 
@@ -109,64 +107,8 @@
     if (!raf) c.clearRect(0, 0, innerWidth, innerHeight);
   }
 
-  // ---------------- Slot reels ----------------
-  var SYMBOLS = ["💎", "🪙", "🗝️", "🧭", "⚓", "🦜", "💰", "👑", "🎁", "💍", "🍾", "🏆"];
-  var CELL = 128, LOOP = 24;
-  var reelEls = Array.prototype.slice.call(document.querySelectorAll(".reel"));
-  function cellHTML(sym) {
-    return '<div class="cell">' + (sym && sym.img ? '<img src="' + sym.img + '" alt="">' : (sym && sym.e) || sym) + "</div>";
-  }
-  function randSym() { return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]; }
-  function fill(reel, finalSym) {
-    var html = "";
-    for (var i = 0; i < LOOP; i++) html += cellHTML(randSym());
-    html += cellHTML(finalSym || randSym()) + cellHTML(randSym());
-    reel.querySelector(".strip").innerHTML = html;
-  }
-  reelEls.forEach(function (r, i) { fill(r, ["💎", "💰", "👑"][i]); r.querySelector(".strip").style.transform = "translateY(" + (-LOOP * CELL) + "px)"; });
-
-  var spinTimers = [], tickTimer = 0;
-  var Reels = {
-    start: function () {
-      clearInterval(tickTimer);
-      if (!reduced) tickTimer = setInterval(SFX.tick, 70);
-      reelEls.forEach(function (r, i) {
-        var strip = r.querySelector(".strip"), pos = 0;
-        r.classList.add("spinning");
-        strip.style.transition = "none";
-        cancelAnimationFrame(spinTimers[i]);
-        (function loop() {
-          pos = (pos + (reduced ? 0 : 38 + i * 4)) % (LOOP * CELL);
-          strip.style.transform = "translateY(" + (-pos) + "px)";
-          spinTimers[i] = requestAnimationFrame(loop);
-        })();
-      });
-    },
-    stop: function (finals) {
-      return new Promise(function (resolve) {
-        reelEls.forEach(function (r, i) {
-          setTimeout(function () {
-            cancelAnimationFrame(spinTimers[i]);
-            var strip = r.querySelector(".strip");
-            fill(r, finals[i % finals.length]);
-            strip.style.transition = "none";
-            strip.style.transform = "translateY(0)";
-            void strip.offsetHeight;
-            strip.style.transition = reduced ? "none" : "transform .7s cubic-bezier(.2, 1.35, .4, 1)";
-            strip.style.transform = "translateY(" + (-LOOP * CELL) + "px)";
-            setTimeout(function () { r.classList.remove("spinning"); SFX.thunk(); }, reduced ? 0 : 520);
-            if (i === reelEls.length - 1) {
-              clearInterval(tickTimer);
-              setTimeout(resolve, reduced ? 0 : 800);
-            }
-          }, (reduced ? 0 : i * 380));
-        });
-      });
-    },
-  };
-
   window.FX = {
-    sfx: SFX, burst: burst, reels: Reels,
+    sfx: SFX, burst: burst,
     get soundOn() { return soundOn; },
     setSound: function (on) {
       soundOn = on;
