@@ -62,7 +62,7 @@
   }
   function renderFor(it, v) {
     if (it.img) return it.img;
-    var r = iconRow(it), key = r ? r[2] : "gift";
+    var r = iconRow(it), key = it.k || (r ? r[2] : "gift");
     var g = ASSETS.gifts || {};
     var n = g[key];
     // No photo for this gift type yet: show a wrapped-gift photo rather than mixing in an emoji.
@@ -74,7 +74,7 @@
   function variants(items) {
     var seen = {};
     return items.map(function (it) {
-      var r = iconRow(it), k = r ? r[2] : "gift";
+      var r = iconRow(it), k = it.k || (r ? r[2] : "gift");
       seen[k] = (seen[k] || 0) + 1;
       return seen[k] - 1;
     });
@@ -89,33 +89,33 @@
   // ---------- The treasure chest ----------
   // Items sit on a heap of coins and gems; the lid stands open and swings
   // further back on hover while the loot rises.
+  // Where each gift sits in the trunk: [x %, bottom % of the treasure area, tilt, scale].
   var SPOTS = {
-    1: [[50, 34, 0, 1.25]],
-    2: [[34, 30, -10, 1.1], [66, 34, 9, 1.15]],
-    3: [[24, 26, -12, 1], [50, 40, 0, 1.2], [76, 26, 11, 1]],
-    4: [[20, 22, -14, .95], [41, 40, -4, 1.12], [62, 38, 6, 1.08], [82, 22, 13, .95]],
-    5: [[16, 20, -16, .9], [34, 36, -6, 1.05], [52, 46, 2, 1.15], [70, 34, 8, 1.02], [86, 18, 15, .88]],
+    1: [[50, 6, 0, 1.25]],
+    2: [[34, 6, -8, 1.1], [66, 8, 7, 1.12]],
+    3: [[25, 6, -12, 1], [50, 18, 0, 1.12], [75, 6, 11, 1]],
+    4: [[22, 4, -14, .92], [42, 18, -4, 1.04], [62, 16, 5, 1.02], [80, 4, 13, .92]],
+    5: [[16, 1, -16, .88], [33, 8, -7, 1], [51, 13, 1, 1.1], [69, 8, 7, 1], [85, 1, 15, .88]],
   };
-  var GLINTS = [[12, 58, 0], [31, 78, 1.1], [57, 88, .4], [74, 70, 1.7], [90, 52, .8], [46, 62, 2.3]];
+  var GLINTS = [[14, 18, 0], [30, 44, 1.1], [56, 58, .4], [72, 36, 1.7], [88, 20, .8], [46, 24, 2.3]];
 
   function chest(items, opts) {
     var list = items.slice(0, 5);
     var spots = SPOTS[list.length] || SPOTS[5];
     var vs = variants(list);
     var loot = list.map(function (it, i) {
-      var s = spots[i];
+      var s = spots[i] || spots[spots.length - 1];
       return '<span class="loot-item" style="--x:' + s[0] + "%;--y:" + s[1] + "%;--r:" + s[2] + "deg;--k:" + s[3] + ";--d:" + (i * 0.06) + 's">' + glyph(it, vs[i]) + "</span>";
     }).join("");
     var glints = GLINTS.map(function (g) {
       return '<i class="glint" style="--x:' + g[0] + "%;--y:" + g[1] + "%;--t:" + g[2] + 's"></i>';
     }).join("");
     return '<span class="chest' + (opts && opts.big ? " chest-big" : "") + '" aria-hidden="true">' +
+      '<img class="c-back" src="img/scene/chest.webp" alt="" draggable="false">' +
       '<span class="chest-glow"></span>' +
-      '<span class="lid"><span class="lid-out"></span><span class="lid-in"></span></span>' +
-      '<span class="hoard"><span class="coins"></span>' +
-        '<i class="gem gem-ruby"></i><i class="gem gem-emerald"></i><i class="gem gem-sapphire"></i><i class="gem gem-diamond"></i>' +
-        loot + glints + "</span>" +
-      '<span class="box"><span class="lock"></span></span>' +
+      '<span class="hoard"><img class="c-gold" src="img/scene/gold.webp" alt="" draggable="false">' + loot + glints + "</span>" +
+      '<img class="c-front" src="img/scene/chest-front.webp" alt="" draggable="false">' +
+      '<img class="c-coins" src="img/scene/coins.webp" alt="" draggable="false">' +
       "</span>";
   }
 
@@ -164,64 +164,15 @@
   var HER = /\b(her|she|wife|mom|mother|sister|girlfriend|daughter|grandma|grandmother|aunt|niece|bride|fianc[eé]e|woman|women|girl|lady)\b/i;
   var HIM = /\b(him|he|husband|dad|father|brother|boyfriend|son|grandpa|grandfather|uncle|nephew|groom|fianc[eé]|man|men|guy|boy)\b/i;
 
-  var POOLS = {
-    coffee: { k: /coffee|espresso|latte|caffeine/i, items: [
-      ["Manual burr grinder", "manual burr coffee grinder", 25], ["Pour-over coffee set", "pour over coffee maker set", 35],
-      ["Specialty coffee sampler", "specialty coffee sampler gift", 20], ["Milk frother", "handheld milk frother", 15],
-      ["Espresso machine", "espresso machine with milk frother", 180]] },
-    grill: { k: /grill|bbq|barbecue|smok|meat|steak/i, items: [
-      ["Grill tool set", "bbq grill tool set", 25], ["Smart meat thermometer", "wireless smart meat thermometer", 100],
-      ["BBQ rub sampler", "bbq rub gift set", 15], ["Cast iron griddle", "cast iron griddle", 60], ["Grilling cookbook", "grilling cookbook", 22]] },
-    cooking: { k: /cook|chef|bak|kitchen|food|foodie/i, items: [
-      ["Enameled Dutch oven", "enameled cast iron dutch oven", 90], ["Chef knife", "chef knife", 60],
-      ["Olive oil gift set", "olive oil gift set", 30], ["Linen apron", "linen apron", 25], ["Spice gift set", "spice gift set", 30]] },
-    fitness: { k: /\brun|gym|fitness|\bfit\b|workout|yoga|lift|marathon|pilates|cycling|bike/i, items: [
-      ["Massage gun", "percussion massage gun", 90], ["Foam roller", "foam roller", 30], ["Insulated water bottle", "insulated water bottle", 30],
-      ["Wireless sport earbuds", "wireless sport earbuds", 60], ["Yoga mat", "premium yoga mat", 60], ["Running belt", "running belt phone", 18]] },
-    outdoors: { k: /camp|hik|outdoor|fish|hunt|kayak|nature|backpack/i, items: [
-      ["Multitool", "multitool pliers", 40], ["Rechargeable headlamp", "rechargeable headlamp", 20], ["Camping hammock", "camping hammock", 25],
-      ["Insulated tumbler", "insulated tumbler", 25], ["Fishing tackle box kit", "fishing tackle box kit", 35], ["Trail binoculars", "compact binoculars", 50]] },
-    golf: { k: /golf/i, items: [
-      ["Golf balls dozen", "premium golf balls dozen", 45], ["Golf rangefinder", "golf rangefinder", 150],
-      ["Golf towel and brush set", "golf towel brush set", 20], ["Putting mat", "indoor putting green mat", 40]] },
-    tech: { k: /\btech|gadget|computer|phone|nerd|engineer|developer|coder/i, items: [
-      ["Wireless charging stand", "3 in 1 wireless charging stand", 40], ["Noise-cancelling headphones", "noise cancelling headphones", 150],
-      ["Smart speaker", "smart speaker", 50], ["Item tracker", "bluetooth item tracker", 30], ["Portable power bank", "portable power bank", 35]] },
-    gaming: { k: /gam(e|er|ing)|video game|console|xbox|playstation|nintendo|switch/i, items: [
-      ["Gaming headset", "wireless gaming headset", 80], ["Controller charging dock", "controller charging station", 25],
-      ["LED light strip", "rgb led light strip", 20], ["Gaming mouse pad XL", "extended gaming mouse pad", 18], ["Gaming gift card", "video game gift card", 50]] },
-    music: { k: /music|vinyl|record|guitar|piano|concert|band|sing/i, items: [
-      ["Bluetooth speaker", "portable bluetooth speaker", 60], ["Turntable", "belt drive turntable", 150],
-      ["Guitar accessory kit", "guitar accessories kit", 25], ["Vinyl storage crate", "vinyl record storage crate", 40]] },
-    books: { k: /\bread|book|novel|librar|writ/i, items: [
-      ["E-reader", "e reader", 140], ["Book light", "rechargeable book light", 15], ["Reading journal", "reading journal book log", 14],
-      ["Bookends", "decorative bookends", 25], ["Leather journal", "leather journal", 25]] },
-    travel: { k: /travel|trip|flight|vacation|wander|airport/i, items: [
-      ["Packing cubes", "packing cubes set", 30], ["Travel pillow", "memory foam travel pillow", 30],
-      ["Leather passport holder", "leather passport holder", 25], ["Carry-on luggage", "carry on luggage hardside", 150], ["Universal travel adapter", "universal travel adapter", 25]] },
-    garden: { k: /garden|plant|flower|succulent|green thumb/i, items: [
-      ["Herb garden kit", "indoor herb garden kit", 25], ["Ceramic planters", "ceramic planter set", 25],
-      ["Gardening tool set", "gardening tool set", 30], ["Smart indoor garden", "smart indoor garden", 120]] },
-    beauty: { k: /beauty|skincare|makeup|spa|pamper|self.?care|relax/i, items: [
-      ["Skincare gift set", "skincare gift set", 45], ["Silk pillowcase", "mulberry silk pillowcase", 40],
-      ["Bath bomb set", "bath bomb gift set", 15], ["Plush robe", "plush robe", 45], ["Aromatherapy diffuser", "aromatherapy diffuser", 25]] },
-    drinks: { k: /wine|whisk|bourbon|cocktail|beer|\bbar\b|scotch|tequila/i, items: [
-      ["Whiskey glasses set", "whiskey glasses set", 30], ["Cocktail shaker kit", "cocktail shaker bartender kit", 40],
-      ["Wine aerator", "wine aerator", 20], ["Whiskey stones", "whiskey stones", 18], ["Electric wine opener", "electric wine opener", 30]] },
-    pets: { k: /\b(dogs?|cats?|pets?|puppy|kitten)\b/i, items: [
-      ["Pet portrait custom", "custom pet portrait", 35], ["Calming pet bed", "calming pet bed", 40],
-      ["Interactive pet toy", "interactive pet toy", 20], ["Pet camera", "pet camera treat dispenser", 60]] },
-    home: { k: /\bhome\b|house|cozy|new place|housewarming|apartment/i, items: [
-      ["Weighted blanket", "weighted blanket", 60], ["Scented candle", "luxury scented candle", 35],
-      ["Throw blanket", "chunky knit throw blanket", 45], ["Smart plug set", "smart plug", 25]] },
-    art: { k: /\b(art|artist|paint\w*|draw\w*|sketch\w*|craft\w*|creative)\b/i, items: [
-      ["Watercolor set", "professional watercolor paint set", 35], ["Sketchbook", "hardcover sketchbook", 18],
-      ["Drawing pencil set", "drawing pencil set", 20], ["Tabletop easel", "tabletop easel", 30]] },
-    baby: { k: /baby|newborn|new parent|new mom|new dad|pregnan|expecting/i, items: [
-      ["Baby memory book", "baby memory book", 30], ["Swaddle blankets", "muslin swaddle blankets", 30],
-      ["White noise machine", "white noise machine", 30], ["Diaper bag backpack", "diaper bag backpack", 45]] },
-  };
-
+  // Offline fallback: match words in the request against the practical items in the 24 baskets.
+  var TOPICS = [
+    [/groom|beard|shav|nail|hair|tweez|comb|self.?care|beauty/i, /tweezer|clipper|comb|brush|manicure|shaver|oneblade|styler|lip/i],
+    [/phone|iphone|tech|gadget|music|commut/i, /iphone|charger|cable|case|airpods|power bank|kindle/i],
+    [/cook|kitchen|chef|food|grill|bbq/i, /skillet|knife|board|oxo|thermo|fryer|instant pot/i],
+    [/outdoor|camp|hik|fish|hunt|work|trade|handy|tool|edc/i, /swiss|gerber|leatherman|maglite|streamlight|zippo|benchmade|tumbler|darn tough/i],
+    [/read|book/i, /kindle|sleep mask|socks/i],
+    [/cold|winter|cozy|warm/i, /socks|beanie|underwear/i],
+  ];
   function parseBudget(text) {
     var m = text.match(/\$\s?(\d[\d,]*)/) || text.match(/(\d[\d,]{1,4})\s?(dollars|bucks|usd)/i) ||
       text.match(/(?:under|around|about|budget|up to)\s+(\d[\d,]*)/i);
@@ -232,45 +183,29 @@
   function localCurate(text) {
     var budget = parseBudget(text);
     var who = HER.test(text) ? "her" : HIM.test(text) ? "him" : null;
-    var pool = [], themes = [];
-    Object.keys(POOLS).forEach(function (key) {
-      if (POOLS[key].k.test(text)) {
-        themes.push(key);
-        POOLS[key].items.forEach(function (i) { pool.push({ n: i[0], q: i[1], p: i[2] }); });
-      }
-    });
-    if (!pool.length) {
-      window.BASKETS.forEach(function (b) {
-        if (!who || b.for === who) b.items.forEach(function (i) { pool.push(i); });
-      });
-    }
-    // Pad thin themed pools with the recipient's ready-made basket items.
-    var extra = [];
+    var all = [], seen = {};
     window.BASKETS.forEach(function (b) {
-      if (!who || b.for === who) b.items.forEach(function (i) { extra.push(i); });
+      if (who && b.for !== who) return;
+      b.items.forEach(function (i) { if (!seen[i.n]) { seen[i.n] = 1; all.push(i); } });
     });
-    function pack(list, chosen, sum) {
+    var pool = [];
+    TOPICS.forEach(function (t) {
+      if (t[0].test(text)) all.forEach(function (i) { if (t[1].test(i.n) && pool.indexOf(i) < 0) pool.push(i); });
+    });
+    function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
+    var chosen = [], sum = 0;
+    function pack(list) {
       list.forEach(function (i) {
-        if (chosen.length < 5 && sum.v + i.p <= budget * 1.08 &&
-            !chosen.some(function (c) { return c.n === i.n; })) {
-          chosen.push(i); sum.v += i.p;
-        }
+        if (chosen.length < 4 && sum + i.p <= budget * 1.08 && chosen.indexOf(i) < 0) { chosen.push(i); sum += i.p; }
       });
     }
-    function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
-    // Keep any single gift under ~60% of the budget so the basket has several pieces.
-    var cap = function (i) { return i.p <= Math.max(budget * 0.6, 20); };
-    var chosen = [], sum = { v: 0 };
-    pack(shuffle(pool.filter(cap)), chosen, sum);
-    if (chosen.length < 3) pack(shuffle(extra.filter(cap)), chosen, sum);
-    if (!chosen.length) {
-      var cheapest = pool.concat(extra).sort(function (a, b) { return a.p - b.p; })[0];
-      if (cheapest) chosen.push(cheapest);
-    }
+    pack(shuffle(pool.slice()));
+    if (chosen.length < 3) pack(shuffle(all.slice()));
+    if (!chosen.length) chosen.push(all.slice().sort(function (a, b) { return a.p - b.p; })[0]);
     chosen.sort(function (a, b) { return b.p - a.p; });
     return {
-      title: themes.length ? "A " + themes.slice(0, 2).join(" and ") + " basket" : "A basket picked for " + (who || "them"),
-      note: "Built around a budget of about " + money(budget) + ".",
+      title: "Picked for " + (who === "her" ? "her" : who === "him" ? "him" : "them"),
+      note: "Practical things they'll use, built around about " + money(budget) + ".",
       items: chosen,
     };
   }
@@ -278,7 +213,7 @@
   function normalizeAI(data) {
     if (!data || !Array.isArray(data.items) || !data.items.length) return null;
     var items = data.items.slice(0, 6).map(function (i) {
-      return { n: String(i.name || ""), q: String(i.search || i.name || ""), p: Number(i.price) || 25, why: i.why ? String(i.why) : "", e: i.emoji ? String(i.emoji).slice(0, 8) : "" };
+      return { n: String(i.name || ""), q: String(i.search || i.name || ""), p: Number(i.price) || 25, why: i.why ? String(i.why) : "", k: i.photo ? String(i.photo) : "" };
     }).filter(function (i) { return i.n && i.q; });
     if (!items.length) return null;
     return { title: String(data.title || "Your basket"), note: String(data.note || ""), items: items };

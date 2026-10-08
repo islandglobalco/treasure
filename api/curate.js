@@ -4,19 +4,24 @@
 
 const MODEL = process.env.CLAUDE_MODEL || "claude-haiku-5-5";
 
-const SYSTEM = `You are the gift curator for Treasure.gift, which builds gift baskets from products sold on Amazon.
-Given a description of a recipient (who they are, interests, occasion, budget), build ONE cohesive basket of 3 to 5 gifts.
+const PHOTO_KEYS = "tweezers clippers lipbalm socks socks2 charger cable phonecase manicure brush comb swissknife keytool tumbler flashlight underwear skillet chefknife board utensils earbuds powerbank kindle sleepmask iphone hairdryer airfryer pressurecooker shaver multitool lighter beanie thermometer pocketknife gift";
+
+const SYSTEM = `You are the gift picker for Treasure.gift, which builds gift baskets from products sold on Amazon (US).
+Given a description of a recipient (who they are, interests, occasion, budget), pick ONE basket of 2 to 5 practical gifts.
 Rules:
-- Stay within the stated budget (sum of prices at most 10% over). If no budget is given, assume about $100.
-- Pick generic, widely available product types that Amazon sells from many brands. Do not name specific brands or model numbers.
-- "search" is a short Amazon search phrase (2 to 6 words) that will find that item.
-- "price" is a realistic typical price in whole US dollars.
-- "emoji" is one emoji that best depicts the item.
+- Practical things people actually use every day. No novelty, gag, decor or "experience" gifts.
+  Good examples: Victorinox Swiss Army Classic SD, Gerber Shard, Darn Tough socks, Amazon Essentials underwear,
+  Tweezerman tweezers, Seki Edge nail clippers, Kent combs, Anker chargers, Lodge cast iron, Leatherman, Maglite, Stanley, YETI, iPhone, AirPods, Kindle.
+- Name the specific, well-reviewed product (brand and model). Prefer American brands and US-made products when one fits.
+- Stay within the stated budget (sum of prices at most 10% over). If no budget is given, assume about $75.
+- "search" is the Amazon search phrase for that exact product (brand + model).
+- "price" is its typical Amazon price in whole US dollars.
+- "photo" is the closest match from this list: ${PHOTO_KEYS}. Use "gift" if nothing fits.
 - "why" is one short sentence (under 14 words) on why it suits this person.
-- "title" is a warm 2 to 5 word basket name. "note" is one sentence about the basket.
-- Never include alcohol, weapons, tobacco, or adult products. If the request is not about choosing a gift, build a general-interest basket.
+- "title" is a plain 2 to 5 word basket name. "note" is one sentence about the basket.
+- Never include alcohol, weapons other than everyday pocket tools, tobacco, or adult products. If the request is not about choosing a gift, build a general practical basket.
 Respond with JSON only, no prose, in exactly this shape:
-{"title":"","note":"","items":[{"name":"","search":"","price":0,"emoji":"","why":""}]}`;
+{"title":"","note":"","items":[{"name":"","search":"","price":0,"photo":"","why":""}]}`;
 
 // Very small per-instance rate limit: 8 requests per minute per IP.
 const hits = new Map();
@@ -64,7 +69,7 @@ export default async function handler(req, res) {
       search: String(i.search || i.name || "").slice(0, 80),
       price: Math.max(1, Math.round(Number(i.price) || 25)),
       why: String(i.why || "").slice(0, 140),
-      emoji: String(i.emoji || "").slice(0, 8),
+      photo: PHOTO_KEYS.split(" ").includes(String(i.photo)) ? String(i.photo) : "gift",
     })).filter((i) => i.name && i.search);
     if (!items.length) return res.status(502).json({ error: "No basket came back." });
     res.setHeader("Cache-Control", "no-store");

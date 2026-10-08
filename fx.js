@@ -58,21 +58,18 @@
   var cv = document.getElementById("fx"), g2 = cv ? cv.getContext("2d") : null, parts = [], raf = 0, dpr = 1;
   function size() { if (!cv) return; dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
   addEventListener("resize", size); size();
+  // Gold dust and starbursts: reads as light on real gold rather than cartoon coins.
   function burst(x, y, n) {
     if (!g2 || reduced) return;
     n = n || 60;
     for (var i = 0; i < n; i++) {
-      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3, sp = 6 + Math.random() * 11;
-      var gem = Math.random() < 0.18;
-      parts.push({
-        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: gem ? 6 + Math.random() * 4 : 7 + Math.random() * 7,
-        spin: Math.random() * 6, vs: 0.15 + Math.random() * 0.3, life: 1, gem: gem,
-        hue: [350, 140, 215, 190][Math.floor(Math.random() * 4)],
-      });
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5, sp = 2 + Math.random() * 7;
+      parts.push({ x: x + (Math.random() - 0.5) * 60, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2,
+        r: 1 + Math.random() * 2.4, life: 1, dust: true, tw: Math.random() * 6 });
     }
-    for (var s = 0; s < 30; s++) {
-      var b = Math.random() * Math.PI * 2, v = 2 + Math.random() * 8;
-      parts.push({ x: x, y: y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 2 + Math.random() * 4, spark: true, life: 1 });
+    for (var s = 0; s < Math.round(n / 3); s++) {
+      var b = Math.random() * Math.PI * 2, v = 1.5 + Math.random() * 5;
+      parts.push({ x: x, y: y, vx: Math.cos(b) * v, vy: Math.sin(b) * v - 1.5, r: 3 + Math.random() * 6, spark: true, life: 1 });
     }
     if (!raf) raf = requestAnimationFrame(step);
   }
@@ -83,26 +80,20 @@
   }
   function step() {
     var c = g2; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
-    parts = parts.filter(function (p) { return p.life > 0 && p.y < innerHeight + 40; });
+    parts = parts.filter(function (p) { return p.life > 0; });
+    c.globalCompositeOperation = "lighter";
     parts.forEach(function (p) {
-      p.x += p.vx; p.y += p.vy; p.vy += p.spark ? 0.08 : 0.38; p.vx *= 0.99;
-      p.life -= p.spark ? 0.022 : 0.006;
-      c.globalAlpha = Math.max(0, Math.min(1, p.life * 1.5));
-      if (p.spark) { c.fillStyle = "#FFF6CC"; star(c, p.x, p.y, p.r * 2); return; }
-      p.spin += p.vs;
-      var w = Math.abs(Math.cos(p.spin)) * p.r + 1;
-      if (p.gem) {
-        c.save(); c.translate(p.x, p.y); c.rotate(p.spin);
-        c.fillStyle = "hsl(" + p.hue + ",80%,55%)"; c.fillRect(-p.r / 2, -p.r / 2, p.r, p.r);
-        c.fillStyle = "rgba(255,255,255,.7)"; c.fillRect(-p.r / 2, -p.r / 2, p.r / 2.5, p.r / 2.5); c.restore();
-      } else {
-        var gr = c.createLinearGradient(p.x - w, p.y - p.r, p.x + w, p.y + p.r);
-        gr.addColorStop(0, "#FFF0B3"); gr.addColorStop(0.5, "#F2C14E"); gr.addColorStop(1, "#A86C14");
-        c.fillStyle = gr; c.beginPath(); c.ellipse(p.x, p.y, w, p.r, 0, 0, Math.PI * 2); c.fill();
-        c.strokeStyle = "rgba(107,65,8,.8)"; c.lineWidth = 1; c.stroke();
-      }
+      p.x += p.vx; p.y += p.vy; p.vx *= 0.97; p.vy = p.vy * 0.97 + (p.spark ? 0.02 : 0.06);
+      p.life -= p.spark ? 0.02 : 0.009;
+      var al = Math.max(0, Math.min(1, p.life * 1.4));
+      if (p.spark) { c.globalAlpha = al; c.fillStyle = "#FFF4CF"; star(c, p.x, p.y, p.r * 1.8); return; }
+      p.tw += 0.3;
+      c.globalAlpha = al * (0.6 + 0.4 * Math.sin(p.tw));
+      var gr = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+      gr.addColorStop(0, "rgba(255,244,200,1)"); gr.addColorStop(0.35, "rgba(255,200,90,.8)"); gr.addColorStop(1, "rgba(255,170,40,0)");
+      c.fillStyle = gr; c.beginPath(); c.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2); c.fill();
     });
-    c.globalAlpha = 1;
+    c.globalAlpha = 1; c.globalCompositeOperation = "source-over";
     raf = parts.length ? requestAnimationFrame(step) : 0;
     if (!raf) c.clearRect(0, 0, innerWidth, innerHeight);
   }
