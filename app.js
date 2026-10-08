@@ -1,0 +1,266 @@
+(function () {
+  "use strict";
+
+  var config = { amazonTag: "" };
+  var state = { who: "her", tier: 0 };
+
+  // ---------- Amazon links ----------
+  function amazonUrl(q, p) {
+    var lo = Math.max(1, Math.round(p * 0.6));
+    var hi = Math.round(p * 1.5) + 5;
+    var url = "https://www.amazon.com/s?k=" + encodeURIComponent(q) +
+      "&rh=p_36%3A" + lo * 100 + "-" + hi * 100;
+    if (config.amazonTag) url += "&tag=" + encodeURIComponent(config.amazonTag);
+    return url;
+  }
+  function total(items) { return items.reduce(function (s, i) { return s + i.p; }, 0); }
+  function money(n) { return "$" + Math.round(n); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------- Basket rendering ----------
+  function itemRows(items) {
+    return items.map(function (it) {
+      return '<li class="item">' +
+        '<div class="item-text"><span class="item-name">' + esc(it.n) + "</span>" +
+        (it.why ? '<span class="item-why">' + esc(it.why) + "</span>" : "") + "</div>" +
+        '<span class="item-price">about ' + money(it.p) + "</span>" +
+        '<a class="shop" href="' + amazonUrl(it.q, it.p) + '" target="_blank" rel="sponsored noopener">Shop on Amazon</a>' +
+        "</li>";
+    }).join("");
+  }
+
+  function renderGrid() {
+    var grid = document.getElementById("grid");
+    var list = window.BASKETS.filter(function (b) {
+      return b.for === state.who && (!state.tier || b.tier === state.tier);
+    });
+    grid.innerHTML = list.map(function (b) {
+      return '<button class="tag" type="button" data-id="' + b.id + '">' +
+        '<span class="tag-price">' + money(total(b.items)) + "</span>" +
+        '<span class="tag-name">' + esc(b.name) + "</span>" +
+        '<span class="tag-blurb">' + esc(b.blurb) + "</span>" +
+        '<span class="tag-count">' + b.items.length + " gifts inside</span>" +
+        "</button>";
+    }).join("");
+  }
+
+  function openBasket(b) {
+    var d = document.getElementById("basket-dialog");
+    document.getElementById("dlg-title").textContent = b.name;
+    document.getElementById("dlg-blurb").textContent = b.blurb;
+    document.getElementById("dlg-total").textContent = "About " + money(total(b.items)) + " in all";
+    document.getElementById("dlg-items").innerHTML = itemRows(b.items);
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }
+
+  // ---------- Search: AI first, local curator as fallback ----------
+  var HER = /\b(her|she|wife|mom|mother|sister|girlfriend|daughter|grandma|grandmother|aunt|niece|bride|fianc[eé]e|woman|women|girl|lady)\b/i;
+  var HIM = /\b(him|he|husband|dad|father|brother|boyfriend|son|grandpa|grandfather|uncle|nephew|groom|fianc[eé]|man|men|guy|boy)\b/i;
+
+  var POOLS = {
+    coffee: { k: /coffee|espresso|latte|caffeine/i, items: [
+      ["Manual burr grinder", "manual burr coffee grinder", 25], ["Pour-over coffee set", "pour over coffee maker set", 35],
+      ["Specialty coffee sampler", "specialty coffee sampler gift", 20], ["Milk frother", "handheld milk frother", 15],
+      ["Espresso machine", "espresso machine with milk frother", 180]] },
+    grill: { k: /grill|bbq|barbecue|smok|meat|steak/i, items: [
+      ["Grill tool set", "bbq grill tool set", 25], ["Smart meat thermometer", "wireless smart meat thermometer", 100],
+      ["BBQ rub sampler", "bbq rub gift set", 15], ["Cast iron griddle", "cast iron griddle", 60], ["Grilling cookbook", "grilling cookbook", 22]] },
+    cooking: { k: /cook|chef|bak|kitchen|food|foodie/i, items: [
+      ["Enameled Dutch oven", "enameled cast iron dutch oven", 90], ["Chef knife", "chef knife", 60],
+      ["Olive oil gift set", "olive oil gift set", 30], ["Linen apron", "linen apron", 25], ["Spice gift set", "spice gift set", 30]] },
+    fitness: { k: /\brun|gym|fitness|\bfit\b|workout|yoga|lift|marathon|pilates|cycling|bike/i, items: [
+      ["Massage gun", "percussion massage gun", 90], ["Foam roller", "foam roller", 30], ["Insulated water bottle", "insulated water bottle", 30],
+      ["Wireless sport earbuds", "wireless sport earbuds", 60], ["Yoga mat", "premium yoga mat", 60], ["Running belt", "running belt phone", 18]] },
+    outdoors: { k: /camp|hik|outdoor|fish|hunt|kayak|nature|backpack/i, items: [
+      ["Multitool", "multitool pliers", 40], ["Rechargeable headlamp", "rechargeable headlamp", 20], ["Camping hammock", "camping hammock", 25],
+      ["Insulated tumbler", "insulated tumbler", 25], ["Fishing tackle box kit", "fishing tackle box kit", 35], ["Trail binoculars", "compact binoculars", 50]] },
+    golf: { k: /golf/i, items: [
+      ["Golf balls dozen", "premium golf balls dozen", 45], ["Golf rangefinder", "golf rangefinder", 150],
+      ["Golf towel and brush set", "golf towel brush set", 20], ["Putting mat", "indoor putting green mat", 40]] },
+    tech: { k: /\btech|gadget|computer|phone|nerd|engineer|developer|coder/i, items: [
+      ["Wireless charging stand", "3 in 1 wireless charging stand", 40], ["Noise-cancelling headphones", "noise cancelling headphones", 150],
+      ["Smart speaker", "smart speaker", 50], ["Item tracker", "bluetooth item tracker", 30], ["Portable power bank", "portable power bank", 35]] },
+    gaming: { k: /gam(e|er|ing)|video game|console|xbox|playstation|nintendo|switch/i, items: [
+      ["Gaming headset", "wireless gaming headset", 80], ["Controller charging dock", "controller charging station", 25],
+      ["LED light strip", "rgb led light strip", 20], ["Gaming mouse pad XL", "extended gaming mouse pad", 18], ["Gaming gift card", "video game gift card", 50]] },
+    music: { k: /music|vinyl|record|guitar|piano|concert|band|sing/i, items: [
+      ["Bluetooth speaker", "portable bluetooth speaker", 60], ["Turntable", "belt drive turntable", 150],
+      ["Guitar accessory kit", "guitar accessories kit", 25], ["Vinyl storage crate", "vinyl record storage crate", 40]] },
+    books: { k: /\bread|book|novel|librar|writ/i, items: [
+      ["E-reader", "e reader", 140], ["Book light", "rechargeable book light", 15], ["Reading journal", "reading journal book log", 14],
+      ["Bookends", "decorative bookends", 25], ["Leather journal", "leather journal", 25]] },
+    travel: { k: /travel|trip|flight|vacation|wander|airport/i, items: [
+      ["Packing cubes", "packing cubes set", 30], ["Travel pillow", "memory foam travel pillow", 30],
+      ["Leather passport holder", "leather passport holder", 25], ["Carry-on luggage", "carry on luggage hardside", 150], ["Universal travel adapter", "universal travel adapter", 25]] },
+    garden: { k: /garden|plant|flower|succulent|green thumb/i, items: [
+      ["Herb garden kit", "indoor herb garden kit", 25], ["Ceramic planters", "ceramic planter set", 25],
+      ["Gardening tool set", "gardening tool set", 30], ["Smart indoor garden", "smart indoor garden", 120]] },
+    beauty: { k: /beauty|skincare|makeup|spa|pamper|self.?care|relax/i, items: [
+      ["Skincare gift set", "skincare gift set", 45], ["Silk pillowcase", "mulberry silk pillowcase", 40],
+      ["Bath bomb set", "bath bomb gift set", 15], ["Plush robe", "plush robe", 45], ["Aromatherapy diffuser", "aromatherapy diffuser", 25]] },
+    drinks: { k: /wine|whisk|bourbon|cocktail|beer|\bbar\b|scotch|tequila/i, items: [
+      ["Whiskey glasses set", "whiskey glasses set", 30], ["Cocktail shaker kit", "cocktail shaker bartender kit", 40],
+      ["Wine aerator", "wine aerator", 20], ["Whiskey stones", "whiskey stones", 18], ["Electric wine opener", "electric wine opener", 30]] },
+    pets: { k: /\b(dogs?|cats?|pets?|puppy|kitten)\b/i, items: [
+      ["Pet portrait custom", "custom pet portrait", 35], ["Calming pet bed", "calming pet bed", 40],
+      ["Interactive pet toy", "interactive pet toy", 20], ["Pet camera", "pet camera treat dispenser", 60]] },
+    home: { k: /\bhome\b|house|cozy|new place|housewarming|apartment/i, items: [
+      ["Weighted blanket", "weighted blanket", 60], ["Scented candle", "luxury scented candle", 35],
+      ["Throw blanket", "chunky knit throw blanket", 45], ["Smart plug set", "smart plug", 25]] },
+    art: { k: /\b(art|artist|paint\w*|draw\w*|sketch\w*|craft\w*|creative)\b/i, items: [
+      ["Watercolor set", "professional watercolor paint set", 35], ["Sketchbook", "hardcover sketchbook", 18],
+      ["Drawing pencil set", "drawing pencil set", 20], ["Tabletop easel", "tabletop easel", 30]] },
+    baby: { k: /baby|newborn|new parent|new mom|new dad|pregnan|expecting/i, items: [
+      ["Baby memory book", "baby memory book", 30], ["Swaddle blankets", "muslin swaddle blankets", 30],
+      ["White noise machine", "white noise machine", 30], ["Diaper bag backpack", "diaper bag backpack", 45]] },
+  };
+
+  function parseBudget(text) {
+    var m = text.match(/\$\s?(\d[\d,]*)/) || text.match(/(\d[\d,]{1,4})\s?(dollars|bucks|usd)/i) ||
+      text.match(/(?:under|around|about|budget|up to)\s+(\d[\d,]*)/i);
+    var n = m ? parseInt(m[1].replace(/,/g, ""), 10) : 100;
+    return Math.min(Math.max(n || 100, 15), 2000);
+  }
+
+  function localCurate(text) {
+    var budget = parseBudget(text);
+    var who = HER.test(text) ? "her" : HIM.test(text) ? "him" : null;
+    var pool = [], themes = [];
+    Object.keys(POOLS).forEach(function (key) {
+      if (POOLS[key].k.test(text)) {
+        themes.push(key);
+        POOLS[key].items.forEach(function (i) { pool.push({ n: i[0], q: i[1], p: i[2] }); });
+      }
+    });
+    if (!pool.length) {
+      window.BASKETS.forEach(function (b) {
+        if (!who || b.for === who) b.items.forEach(function (i) { pool.push(i); });
+      });
+    }
+    // Pad thin themed pools with the recipient's ready-made basket items.
+    var extra = [];
+    window.BASKETS.forEach(function (b) {
+      if (!who || b.for === who) b.items.forEach(function (i) { extra.push(i); });
+    });
+    function pack(list, chosen, sum) {
+      list.forEach(function (i) {
+        if (chosen.length < 5 && sum.v + i.p <= budget * 1.08 &&
+            !chosen.some(function (c) { return c.n === i.n; })) {
+          chosen.push(i); sum.v += i.p;
+        }
+      });
+    }
+    function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
+    // Keep any single gift under ~60% of the budget so the basket has several pieces.
+    var cap = function (i) { return i.p <= Math.max(budget * 0.6, 20); };
+    var chosen = [], sum = { v: 0 };
+    pack(shuffle(pool.filter(cap)), chosen, sum);
+    if (chosen.length < 3) pack(shuffle(extra.filter(cap)), chosen, sum);
+    if (!chosen.length) {
+      var cheapest = pool.concat(extra).sort(function (a, b) { return a.p - b.p; })[0];
+      if (cheapest) chosen.push(cheapest);
+    }
+    chosen.sort(function (a, b) { return b.p - a.p; });
+    return {
+      title: themes.length ? "A " + themes.slice(0, 2).join(" and ") + " basket" : "A basket picked for " + (who || "them"),
+      note: "Built around a budget of about " + money(budget) + ".",
+      items: chosen,
+    };
+  }
+
+  function normalizeAI(data) {
+    if (!data || !Array.isArray(data.items) || !data.items.length) return null;
+    var items = data.items.slice(0, 6).map(function (i) {
+      return { n: String(i.name || ""), q: String(i.search || i.name || ""), p: Number(i.price) || 25, why: i.why ? String(i.why) : "" };
+    }).filter(function (i) { return i.n && i.q; });
+    if (!items.length) return null;
+    return { title: String(data.title || "Your basket"), note: String(data.note || ""), items: items };
+  }
+
+  function renderResult(r, query) {
+    var box = document.getElementById("result");
+    box.innerHTML =
+      '<div class="result-head"><h2>' + esc(r.title) + "</h2>" +
+      '<p class="result-total">About ' + money(total(r.items)) + " in all</p></div>" +
+      (r.note ? '<p class="result-note">' + esc(r.note) + "</p>" : "") +
+      '<ul class="items">' + itemRows(r.items) + "</ul>" +
+      '<p class="result-foot">For: ' + esc(query) + ' <button type="button" class="linkish" id="reroll">Try another mix</button></p>';
+    box.hidden = false;
+    document.getElementById("reroll").addEventListener("click", function () { runSearch(query); });
+    box.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  function runSearch(query) {
+    var btn = document.getElementById("go");
+    var status = document.getElementById("status");
+    btn.disabled = true; btn.textContent = "Filling your basket…"; status.textContent = "";
+    var done = function (r) { btn.disabled = false; btn.textContent = "Fill my basket"; renderResult(r, query); };
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
+    fetch("/api/curate", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query }), signal: ctrl ? ctrl.signal : undefined,
+    }).then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { clearTimeout(timer); done(normalizeAI(data) || localCurate(query)); })
+      .catch(function () { clearTimeout(timer); done(localCurate(query)); });
+  }
+
+  // ---------- Wire up ----------
+  function init() {
+    fetch("/api/config").then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (c) { if (c && c.amazonTag) config.amazonTag = c.amazonTag; })
+      .catch(function () {});
+
+    renderGrid();
+
+    document.getElementById("search").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var q = document.getElementById("q").value.trim();
+      if (!q) {
+        document.getElementById("status").textContent = "Tell us who it's for, what they love, and your budget.";
+        document.getElementById("q").focus();
+        return;
+      }
+      runSearch(q.slice(0, 300));
+    });
+
+    document.querySelectorAll(".example").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.getElementById("q").value = b.textContent;
+        runSearch(b.textContent);
+      });
+    });
+
+    document.querySelectorAll("[data-who]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.who = b.getAttribute("data-who");
+        document.querySelectorAll("[data-who]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        renderGrid();
+      });
+    });
+    document.querySelectorAll("[data-tier]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.tier = Number(b.getAttribute("data-tier"));
+        document.querySelectorAll("[data-tier]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        renderGrid();
+      });
+    });
+
+    document.getElementById("grid").addEventListener("click", function (e) {
+      var t = e.target.closest(".tag");
+      if (!t) return;
+      var b = window.BASKETS.find(function (x) { return x.id === t.getAttribute("data-id"); });
+      if (b) openBasket(b);
+    });
+
+    var dlg = document.getElementById("basket-dialog");
+    document.getElementById("dlg-close").addEventListener("click", function () { dlg.close ? dlg.close() : dlg.removeAttribute("open"); });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg && dlg.close) dlg.close(); });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
