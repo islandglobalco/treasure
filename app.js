@@ -5,13 +5,13 @@
   var state = { who: "her", tier: 0 };
 
   // ---------- Amazon links ----------
-  function amazonUrl(q, p) {
+  // Exact product page when we know the ASIN (same as the Almanac site); otherwise a price-filtered search.
+  function amazonUrl(q, p, asin) {
+    var tag = config.amazonTag ? "tag=" + encodeURIComponent(config.amazonTag) : "";
+    if (asin) return "https://www.amazon.com/dp/" + asin + "/" + (tag ? "?" + tag : "");
     var lo = Math.max(1, Math.round(p * 0.6));
     var hi = Math.round(p * 1.5) + 5;
-    var url = "https://www.amazon.com/s?k=" + encodeURIComponent(q) +
-      "&rh=p_36%3A" + lo * 100 + "-" + hi * 100;
-    if (config.amazonTag) url += "&tag=" + encodeURIComponent(config.amazonTag);
-    return url;
+    return "https://www.amazon.com/s?k=" + encodeURIComponent(q) + "&rh=p_36%3A" + lo * 100 + "-" + hi * 100 + (tag ? "&" + tag : "");
   }
   function total(items) { return items.reduce(function (s, i) { return s + i.p; }, 0); }
   function money(n) { return "$" + Math.round(n); }
@@ -61,7 +61,8 @@
     return r ? r[1] : "🎁";
   }
   function renderFor(it, v) {
-    if (it.img) return it.img;
+    // Amazon's own product image, hotlinked from Amazon's image server.
+    if (it.img) return /^https?:/.test(it.img) ? it.img : "https://m.media-amazon.com/images/I/" + it.img + "._SL500_.jpg";
     var r = iconRow(it), key = it.k || (r ? r[2] : "gift");
     var g = ASSETS.gifts || {};
     var n = g[key];
@@ -82,7 +83,7 @@
   function glyph(it, v) {
     var src = renderFor(it, v);
     return src
-      ? '<img src="' + esc(src) + '" alt="" loading="lazy" draggable="false">'
+      ? '<img src="' + esc(src) + '" alt="" loading="lazy" draggable="false" referrerpolicy="no-referrer"' + (it.img ? ' class="amz"' : "") + ">"
       : '<span class="emoji" aria-hidden="true">' + iconFor(it) + "</span>";
   }
 
@@ -128,7 +129,7 @@
         '<div class="item-text"><span class="item-name">' + esc(it.n) + "</span>" +
         (it.why ? '<span class="item-why">' + esc(it.why) + "</span>" : "") + "</div>" +
         '<span class="item-price">about ' + money(it.p) + "</span>" +
-        '<a class="shop" href="' + amazonUrl(it.q, it.p) + '" target="_blank" rel="sponsored noopener">Shop on Amazon</a>' +
+        '<a class="shop" href="' + amazonUrl(it.q, it.p, it.asin) + '" target="_blank" rel="sponsored noopener">Shop on Amazon</a>' +
         "</li>";
     }).join("");
   }
