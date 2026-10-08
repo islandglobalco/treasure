@@ -4,216 +4,365 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Treasure.gift</title>
-<meta name="description" content="Tell us who it's for. Get a gift basket picked for them, ready to order on Amazon.">
+<meta name="description" content="Pull the lever, win the perfect gift. AI-picked treasure chests of gifts, ready to order on Amazon.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
 <style>
-/* Layout: a gift tag you write on (search), then a rack of hanging gift tags (baskets). Left-aligned, one column of intent. */
+/* Layout: a pirate-cove slot cabinet (search) up top, then a hold of 12 open treasure chests per side. Deliberately one dark, lantern-lit look. */
 :root {
-  --tissue: #E4EEE8;      /* sea-glass tissue paper ground */
-  --paper: #FFFDF8;       /* tag card stock */
-  --pine: #173A33;        /* ink */
-  --pine-soft: #4B6A62;   /* secondary ink */
-  --ribbon: #B3263A;      /* ribbon red, the one accent */
-  --ribbon-ink: #FFFFFF;
-  --gold: #A07A22;        /* foil, used for prices */
-  --line: #C9DAD1;
-  --string: #9DB5AA;
-  --display: "Gloock", "Georgia", serif;
-  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --tissue: #0F2621; --paper: #17332C; --pine: #E6F0EB; --pine-soft: #A4BDB4;
-    --ribbon: #E2546A; --ribbon-ink: #1A0A0E; --gold: #D8B25A; --line: #2B4A42; --string: #3E6157;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --tissue: #0F2621; --paper: #17332C; --pine: #E6F0EB; --pine-soft: #A4BDB4;
-  --ribbon: #E2546A; --ribbon-ink: #1A0A0E; --gold: #D8B25A; --line: #2B4A42; --string: #3E6157;
+  --night: #071A22;        /* deep cove water */
+  --night-2: #0E2D3A;
+  --wood: #5B3418;
+  --wood-dark: #2E180A;
+  --gold: #F2C14E;
+  --gold-hi: #FFF0B3;
+  --gold-lo: #A86C14;
+  --ruby: #C4232F;
+  --parch: #EEDDB8;
+  --ink: #2B1A0C;
+  --bone: #F6EBD3;
+  --mist: #9FC0C4;
+  --display: "Pirata One", "Georgia", serif;
+  --body: "Alegreya Sans", "Trebuchet MS", system-ui, sans-serif;
+  --cove: url("img/cove.webp");
   color-scheme: dark;
 }
-
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0; background: var(--tissue); color: var(--pine);
-  font: 400 1.0625rem/1.55 var(--body);
+  margin: 0; color: var(--bone); font: 400 1.0625rem/1.5 var(--body);
+  background-color: var(--night);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(242, 193, 78, .18), transparent 70%),
+    linear-gradient(180deg, rgba(7, 26, 34, .25) 0%, rgba(7, 26, 34, .82) 520px, var(--night) 900px),
+    var(--cove, none);
+  background-size: auto, auto, 100% auto;
+  background-repeat: no-repeat;
 }
-.wrap { max-width: 1120px; margin: 0 auto; padding-inline: max(16px, 4vw); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: max(16px, 4vw); }
 a { color: inherit; }
-:focus-visible { outline: 3px solid var(--ribbon); outline-offset: 3px; border-radius: 4px; }
-h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+.gilt {
+  background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 45%, var(--gold-lo) 55%, var(--gold) 80%, var(--gold-hi) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #4a2a06) drop-shadow(0 0 18px rgba(242, 193, 78, .35));
+}
 
-/* ---------- header ---------- */
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-block: 22px 0; }
-.logo { font-family: var(--display); font-size: 1.6rem; text-decoration: none; }
-.logo span { color: var(--ribbon); }
-.top nav { font-size: .95rem; color: var(--pine-soft); }
-.top nav a { text-decoration: none; }
-.top nav a:hover { text-decoration: underline; }
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px 0; }
+.logo { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.4rem); text-decoration: none; line-height: 1; }
+.sound {
+  appearance: none; cursor: pointer; border: 2px solid var(--gold-lo); background: rgba(0, 0, 0, .35); color: var(--gold);
+  font: 700 .95rem var(--body); padding: 8px 14px; border-radius: 999px;
+}
+.sound[aria-pressed="false"] { color: var(--mist); border-color: #3b5560; }
 
-/* ---------- hero: the tag you write on ---------- */
-.hero { padding-block: clamp(36px, 7vw, 84px) 40px; display: grid; gap: 28px; }
-.hero h1 { font-size: clamp(2.6rem, 7.4vw, 5.6rem); line-height: .98; letter-spacing: -.01em; max-width: 13ch; }
-.hero .lede { max-width: 52ch; color: var(--pine-soft); font-size: 1.15rem; margin: 0; }
+/* ---------- hero ---------- */
+.hero { padding-block: clamp(26px, 5vw, 56px) 30px; display: grid; gap: 22px; justify-items: center; text-align: center; }
+.hero h1 { font-size: clamp(3rem, 10vw, 7.2rem); line-height: .9; letter-spacing: .01em; }
+.hero .lede { margin: 0; max-width: 50ch; color: var(--parch); font-size: 1.15rem; }
 
-.writer {
-  position: relative; background: var(--paper); max-width: 760px;
-  padding: 26px 26px 22px 64px; border: 1px solid var(--line);
-  clip-path: polygon(0 50%, 34px 0, 100% 0, 100% 100%, 34px 100%);
-  filter: drop-shadow(0 14px 22px rgba(23, 58, 51, .12));
+/* ---------- the slot cabinet ---------- */
+.cabinet {
+  position: relative; width: min(760px, 100%); margin-top: 8px;
+  padding: 26px clamp(14px, 3vw, 28px) 24px; border-radius: 28px 28px 18px 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 30%),
+    repeating-linear-gradient(90deg, var(--wood) 0 46px, #4c2b13 46px 48px);
+  border: 6px solid var(--gold);
+  box-shadow: inset 0 0 0 3px var(--gold-lo), 0 0 0 3px #3a2108, 0 30px 60px rgba(0, 0, 0, .6), 0 0 80px rgba(242, 193, 78, .25);
 }
-.writer::before { /* the punched hole */
-  content: ""; position: absolute; left: 22px; top: 50%; width: 16px; height: 16px; margin-top: -8px;
-  border-radius: 50%; background: var(--tissue); box-shadow: inset 0 0 0 2px var(--string);
+/* chasing marquee bulbs */
+.cabinet::before, .cabinet::after {
+  content: ""; position: absolute; inset: -16px; border-radius: 40px 40px 30px 30px; pointer-events: none;
+  background:
+    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 0 / 28px 28px repeat-x,
+    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 100% / 28px 28px repeat-x,
+    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 0 0 / 28px 28px repeat-y,
+    radial-gradient(circle, var(--gold-hi) 0 3px, rgba(255, 220, 120, .6) 4px, transparent 7px) 100% 0 / 28px 28px repeat-y;
+  animation: bulbs 1s steps(1) infinite;
 }
-.writer label { display: block; font-family: var(--display); font-size: 1.35rem; margin-bottom: 6px; }
-.writer-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
-.writer textarea {
-  flex: 1 1 320px; min-width: 0; resize: none; border: 0; border-bottom: 2px dashed var(--string);
-  background: transparent; color: var(--pine); font: 500 1.2rem/1.45 var(--body); padding: 6px 2px 8px;
+.cabinet::after { background-position: 14px 0, 14px 100%, 0 14px, 100% 14px; animation-delay: .5s; }
+@keyframes bulbs { 0% { opacity: 1; } 50% { opacity: .15; } }
+.cabinet.win::before, .cabinet.win::after { animation-duration: .18s; }
+
+.reels {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px;
+  background: #120a03; border-radius: 16px; border: 4px solid var(--gold-lo);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, .9);
 }
-.writer textarea::placeholder { color: var(--pine-soft); opacity: .75; }
-.writer textarea:focus { outline: none; border-bottom-color: var(--ribbon); }
-.btn {
-  appearance: none; border: 0; cursor: pointer; background: var(--ribbon); color: var(--ribbon-ink);
-  font: 700 1rem var(--body); padding: 14px 22px; border-radius: 999px; white-space: nowrap;
+.reel {
+  position: relative; height: 128px; overflow: hidden; border-radius: 10px;
+  background: linear-gradient(180deg, #c9b48a, var(--parch) 22%, var(--bone) 50%, var(--parch) 78%, #c9b48a);
+  box-shadow: inset 0 14px 18px -8px rgba(0, 0, 0, .7), inset 0 -14px 18px -8px rgba(0, 0, 0, .7);
 }
-.btn:hover { filter: brightness(1.07); }
-.btn:disabled { opacity: .7; cursor: progress; }
-.status { min-height: 1.4em; margin: 10px 0 0; color: var(--ribbon); font-size: .95rem; }
-.examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.examples p { margin: 0; width: 100%; color: var(--pine-soft); font-size: .92rem; }
+.strip { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+.cell { height: 128px; display: grid; place-items: center; font-size: 68px; line-height: 1; }
+.cell img { width: 92px; height: 92px; object-fit: contain; }
+.reel.spinning .strip { filter: blur(3px); }
+.payline { position: absolute; left: 6px; right: 6px; top: 50%; height: 3px; margin-top: -1.5px; background: rgba(196, 35, 47, .55); pointer-events: none; }
+.cabinet.win .reel { animation: flash .25s 6 alternate; }
+@keyframes flash { to { box-shadow: inset 0 0 0 4px var(--gold-hi), 0 0 30px var(--gold); } }
+
+.lever {
+  position: absolute; right: -46px; top: 40px; width: 40px; height: 170px; border: 0; background: none; cursor: pointer; padding: 0;
+}
+.lever::before { /* arm */
+  content: ""; position: absolute; left: 16px; top: 22px; width: 9px; height: 120px; border-radius: 5px;
+  background: linear-gradient(90deg, #888, #eee 40%, #777); transform-origin: 50% 100%; transition: transform .25s ease-in;
+}
+.lever::after { /* knob */
+  content: ""; position: absolute; left: 4px; top: 0; width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8a8a, var(--ruby) 50%, #5d0b10); box-shadow: 0 4px 10px rgba(0, 0, 0, .6);
+  transition: transform .25s ease-in;
+}
+.lever.pulled::before { transform: scaleY(-.2); }
+.lever.pulled::after { transform: translateY(136px); }
+.lever-base { position: absolute; right: -20px; top: 150px; width: 22px; height: 46px; border-radius: 0 10px 10px 0; background: linear-gradient(90deg, var(--gold-lo), var(--gold)); }
+
+.slip { margin-top: 18px; display: grid; gap: 10px; text-align: left; }
+.slip label { font-family: var(--display); font-size: 1.6rem; color: var(--gold); line-height: 1; }
+.slip-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.slip textarea {
+  flex: 1 1 300px; min-width: 0; resize: none; border-radius: 10px; border: 3px solid var(--gold-lo);
+  background: var(--parch); color: var(--ink); font: 500 1.15rem/1.4 var(--body); padding: 12px 14px;
+  box-shadow: inset 0 2px 8px rgba(80, 50, 10, .35);
+}
+.slip textarea::placeholder { color: #7d6649; }
+.spin {
+  appearance: none; border: 0; cursor: pointer; border-radius: 14px; padding: 14px 26px;
+  font: 400 1.6rem/1 var(--display); color: #3a1d02; letter-spacing: .02em;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-lo));
+  box-shadow: 0 6px 0 #6b4108, 0 10px 24px rgba(0, 0, 0, .5), inset 0 2px 0 rgba(255, 255, 255, .6);
+  transition: transform .08s, box-shadow .08s;
+}
+.spin:hover { filter: brightness(1.08); }
+.spin:active { transform: translateY(5px); box-shadow: 0 1px 0 #6b4108, 0 4px 10px rgba(0, 0, 0, .5); }
+.spin:disabled { cursor: progress; filter: saturate(.6); }
+.status { min-height: 1.3em; margin: 0; color: var(--gold-hi); font-size: .98rem; }
+.examples { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 760px; }
 .example {
-  appearance: none; cursor: pointer; background: transparent; color: var(--pine);
-  border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font: 500 .92rem var(--body);
+  appearance: none; cursor: pointer; border-radius: 999px; padding: 7px 14px; font: 500 .95rem var(--body);
+  background: rgba(0, 0, 0, .4); color: var(--parch); border: 1px solid rgba(242, 193, 78, .45);
 }
-.example:hover { border-color: var(--pine-soft); background: var(--paper); }
+.example:hover { border-color: var(--gold); color: var(--gold-hi); }
 
-/* ---------- AI result ---------- */
-.result { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: clamp(20px, 4vw, 36px); margin-bottom: 48px; scroll-margin-top: 20px; }
-.result-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; }
-.result-head h2 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); }
-.result-total { margin: 0; color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
-.result-note { color: var(--pine-soft); margin: 6px 0 0; max-width: 60ch; }
+/* ---------- treasure chest ---------- */
+.chest { position: relative; display: block; width: 100%; aspect-ratio: 1 / .9; perspective: 520px; perspective-origin: 50% -30%; }
+.chest > * { position: absolute; display: block; }
+.chest-glow {
+  left: 0; right: 0; bottom: 22%; height: 70%; z-index: 0;
+  background: radial-gradient(ellipse 50% 50% at 50% 60%, rgba(255, 214, 102, .65), rgba(255, 190, 60, .15) 55%, transparent 72%);
+  transition: transform .5s, opacity .5s; opacity: .8;
+}
+.lid { left: 11%; right: 11%; bottom: 38%; height: 26%; z-index: 1; transform-origin: 50% 0; transform-style: preserve-3d;
+  transform: rotateX(-122deg); transition: transform .7s cubic-bezier(.25, 1.5, .45, 1); }
+.lid-out, .lid-in { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.lid-out {
+  border-radius: 46% 46% 6% 6% / 80% 80% 8% 8%; border: 3px solid var(--gold);
+  background:
+    linear-gradient(90deg, transparent 16%, var(--gold) 16% 21%, transparent 21% 79%, var(--gold) 79% 84%, transparent 84%),
+    repeating-linear-gradient(180deg, #7b4a24 0 30%, var(--wood-dark) 30% 33%);
+}
+.lid-in {
+  transform: rotateX(180deg); border-radius: 6% 6% 46% 46% / 8% 8% 80% 80%; border: 3px solid var(--gold);
+  background: radial-gradient(ellipse at 50% 30%, #a3202c, #5a0b13 75%);
+  box-shadow: inset 0 0 0 5px rgba(242, 193, 78, .5);
+}
+.hoard { left: 13%; right: 13%; bottom: 28%; height: 44%; z-index: 2; transition: transform .6s cubic-bezier(.25, 1.6, .45, 1); }
+.coins {
+  position: absolute; left: -2%; right: -2%; bottom: 0; height: 52%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background:
+    radial-gradient(circle at 30% 30%, var(--gold-hi) 0 1.5px, transparent 2.5px) 0 0 / 13px 9px,
+    radial-gradient(ellipse 46% 40% at 50% 50%, #ffd76a 0 45%, var(--gold-lo) 50% 64%, transparent 66%) 0 0 / 13px 9px,
+    radial-gradient(ellipse 46% 40% at 50% 50%, #f4c043 0 45%, #8a5508 50% 64%, transparent 66%) 6px 4px / 13px 9px,
+    linear-gradient(180deg, #e8b23c, #8f5a0c);
+  box-shadow: 0 -4px 22px rgba(255, 210, 90, .55);
+}
+.gem { position: absolute; width: 11%; aspect-ratio: 1; transform: rotate(45deg); border-radius: 2px; box-shadow: 0 0 10px rgba(255, 255, 255, .5); }
+.gem-ruby { left: 6%; bottom: 14%; background: linear-gradient(135deg, #ff9aa5, #c4142a 50%, #5c0610); }
+.gem-emerald { left: 70%; bottom: 30%; background: linear-gradient(135deg, #b4ffd0, #13a35a 50%, #04401f); width: 9%; }
+.gem-sapphire { left: 40%; bottom: 6%; background: linear-gradient(135deg, #b3d4ff, #1f5fd1 50%, #0a2357); width: 9%; }
+.gem-diamond { left: 88%; bottom: 10%; background: linear-gradient(135deg, #fff, #cfefff 40%, #8fc8e8 60%, #fff); }
+.loot-item {
+  left: var(--x); bottom: var(--y); font-size: 15cqi; line-height: 1; z-index: 1;
+  transform: translateX(-50%) rotate(var(--r)) scale(var(--k));
+  filter: drop-shadow(0 0 2px var(--gold-hi)) drop-shadow(0 0 7px rgba(255, 200, 70, .9)) drop-shadow(0 3px 2px rgba(60, 30, 0, .6));
+  transition: transform .5s cubic-bezier(.25, 1.7, .45, 1) var(--d);
+}
+.loot-item img { display: block; width: 1.2em; height: 1.2em; object-fit: contain; border-radius: 4px; }
+.glint {
+  position: absolute; left: var(--x); bottom: var(--y); width: 7cqi; aspect-ratio: 1; z-index: 3; margin-left: -3.5cqi;
+  background: radial-gradient(circle, #fff 0 18%, rgba(255, 245, 200, .9) 30%, transparent 70%);
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+  animation: glint 2.6s ease-in-out infinite var(--t); opacity: 0;
+}
+@keyframes glint { 0%, 70%, 100% { opacity: 0; transform: scale(.2) rotate(0); } 82% { opacity: 1; transform: scale(1.2) rotate(45deg); } }
+.box {
+  left: 9%; right: 9%; bottom: 3%; height: 37%; z-index: 3; border-radius: 6px; border: 3px solid var(--gold);
+  background:
+    linear-gradient(90deg, transparent 15%, var(--gold) 15% 20%, transparent 20% 80%, var(--gold) 80% 85%, transparent 85%),
+    linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 20%, rgba(0, 0, 0, .3)),
+    repeating-linear-gradient(180deg, #7b4a24 0 calc(33.3% - 3px), var(--wood-dark) calc(33.3% - 3px) 33.3%);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, .55);
+}
+.lock {
+  position: absolute; left: 50%; top: -3px; width: 18%; height: 42%; margin-left: -9%;
+  border-radius: 0 0 40% 40%; background: linear-gradient(180deg, var(--gold-hi), var(--gold) 50%, var(--gold-lo));
+}
+.lock::after { content: ""; position: absolute; left: 50%; top: 35%; width: 18%; height: 38%; margin-left: -9%; border-radius: 50% 50% 2px 2px; background: #2a1404; }
+
+/* hover: the lid swings further back, loot rises and grows */
+.hold:hover .lid, .hold:focus-visible .lid, .chest-big .lid { transform: rotateX(-172deg); }
+.hold:hover .hoard, .hold:focus-visible .hoard { transform: translateY(-9%) scale(1.07); }
+.hold:hover .loot-item, .hold:focus-visible .loot-item { transform: translateX(-50%) translateY(-14%) rotate(calc(var(--r) * .5)) scale(calc(var(--k) * 1.14)); }
+.hold:hover .chest-glow, .hold:focus-visible .chest-glow { opacity: 1; transform: scale(1.18); }
+.loot-item:hover { transform: translateX(-50%) translateY(-20%) rotate(0) scale(calc(var(--k) * 1.35)) !important; z-index: 5; transition-delay: 0s; }
+
+/* ---------- result ---------- */
+.result {
+  display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: 10px 32px; align-items: center;
+  background: linear-gradient(180deg, rgba(14, 45, 58, .92), rgba(7, 26, 34, .92));
+  border: 3px solid var(--gold-lo); border-radius: 22px; padding: clamp(18px, 4vw, 34px); margin-bottom: 48px; scroll-margin-top: 16px;
+  box-shadow: 0 0 60px rgba(242, 193, 78, .2);
+}
+.result[hidden] { display: none; }
+.result-chest { container-type: inline-size; }
+.result-body { min-width: 0; }
+.result-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 18px; }
+.result-head h2 { font-size: clamp(2rem, 4.4vw, 3rem); color: var(--gold); line-height: 1; }
+.result-total { margin: 0; font-family: var(--display); font-size: 1.6rem; color: var(--gold-hi); }
+.result-note { color: var(--parch); margin: 6px 0 0; }
+.result-foot { margin: 16px 0 0; color: var(--mist); font-size: .95rem; overflow-wrap: anywhere; }
 .result-foot .linkish { margin-left: 10px; }
-.result-foot { margin: 18px 0 0; color: var(--pine-soft); font-size: .95rem; overflow-wrap: anywhere; }
-.linkish { appearance: none; background: none; border: 0; padding: 0; color: var(--ribbon); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.linkish { appearance: none; background: none; border: 0; padding: 0; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+@media (max-width: 700px) { .result { grid-template-columns: 1fr; } .result-chest { max-width: 300px; margin: 0 auto; width: 100%; } }
 
-.items { list-style: none; margin: 18px 0 0; padding: 0; }
-.item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 6px 18px; padding: 14px 0; border-top: 1px solid var(--line); }
+.items { list-style: none; margin: 14px 0 0; padding: 0; }
+.item { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 6px 14px; padding: 12px 0; border-top: 1px solid rgba(242, 193, 78, .25); }
+.item-icon {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 26px;
+  background: radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold) 45%, var(--gold-lo)); box-shadow: 0 0 0 2px #6b4108, 0 0 14px rgba(242, 193, 78, .45);
+  transition: transform .25s cubic-bezier(.25, 1.7, .45, 1);
+}
+.item-icon img { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; }
+.item:hover .item-icon { transform: scale(1.18) rotate(-6deg); }
 .item-text { min-width: 0; display: grid; gap: 2px; }
-.item-name { font-weight: 600; }
-.item-why { color: var(--pine-soft); font-size: .95rem; }
-.item-price { color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.shop { font-weight: 700; font-size: .95rem; color: var(--ribbon); white-space: nowrap; }
-@media (max-width: 560px) {
-  .item { grid-template-columns: 1fr auto; }
-  .shop { grid-column: 1 / -1; }
+.item-name { font-weight: 700; }
+.item-why { color: var(--mist); font-size: .95rem; }
+.item-price { color: var(--gold-hi); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.shop {
+  white-space: nowrap; font-weight: 800; font-size: .92rem; text-decoration: none; color: #3a1d02;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 50%, var(--gold-lo)); padding: 8px 12px; border-radius: 8px;
 }
+.shop:hover { filter: brightness(1.1); }
+@media (max-width: 560px) { .item { grid-template-columns: auto 1fr auto; } .shop { grid-column: 2 / -1; justify-self: start; } }
 
-/* ---------- the rack of baskets ---------- */
+/* ---------- the hold (24 chests) ---------- */
 .rack { padding-block: 24px 64px; }
-.rack-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px 24px; margin-bottom: 8px; }
-.rack-head h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
-.rack-head p { margin: 4px 0 0; color: var(--pine-soft); max-width: 46ch; }
-.filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-.seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.rack-head { display: grid; justify-items: center; text-align: center; gap: 12px; margin-bottom: 18px; }
+.rack-head h2 { font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1; }
+.rack-head p { margin: 0; color: var(--parch); max-width: 52ch; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center; align-items: center; }
+.seg { display: inline-flex; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, .45); border: 2px solid var(--gold-lo); }
 .seg button {
-  appearance: none; border: 0; background: transparent; color: var(--pine); cursor: pointer;
-  font: 600 .95rem var(--body); padding: 8px 16px; border-radius: 999px;
+  appearance: none; border: 0; background: transparent; color: var(--parch); cursor: pointer;
+  font: 400 1.25rem/1 var(--display); padding: 9px 20px; border-radius: 999px;
 }
-.seg button[aria-pressed="true"] { background: var(--pine); color: var(--paper); }
-.tiers { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 50%, var(--gold-lo)); color: #3a1d02; }
+.tiers { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .tiers button {
-  appearance: none; cursor: pointer; background: transparent; color: var(--pine-soft);
-  border: 1px solid transparent; border-radius: 999px; padding: 6px 12px; font: 500 .92rem var(--body);
+  appearance: none; cursor: pointer; background: transparent; color: var(--mist);
+  border: 1px solid transparent; border-radius: 999px; padding: 6px 12px; font: 500 .95rem var(--body);
 }
-.tiers button[aria-pressed="true"] { color: var(--pine); border-color: var(--pine-soft); }
+.tiers button[aria-pressed="true"] { color: var(--gold-hi); border-color: var(--gold-lo); background: rgba(0, 0, 0, .35); }
 
-/* the string the tags hang from */
-.grid {
-  position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 46px 22px; padding-top: 44px;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px 22px; }
+.hold {
+  container-type: inline-size; appearance: none; border: 0; font: inherit; color: inherit; text-align: center; cursor: pointer;
+  background: radial-gradient(ellipse 80% 55% at 50% 38%, rgba(242, 193, 78, .12), transparent 70%);
+  border-radius: 20px; padding: 8px 10px 18px; display: grid; gap: 4px; align-content: start;
 }
-.tag {
-  position: relative; appearance: none; text-align: left; cursor: pointer; color: var(--pine);
-  background: var(--paper); border: 0; font: inherit;
-  padding: 44px 22px 22px; display: grid; gap: 6px; align-content: start; min-height: 220px;
-  clip-path: polygon(22% 0, 78% 0, 100% 16%, 100% 100%, 0 100%, 0 16%);
-  filter: drop-shadow(0 10px 16px rgba(23, 58, 51, .10));
-  transform-origin: 50% -30px;
-  transition: transform .35s cubic-bezier(.3, 1.6, .5, 1);
-}
-.tag::before { /* the hole */
-  content: ""; position: absolute; top: 14px; left: 50%; width: 14px; height: 14px; margin-left: -7px;
-  border-radius: 50%; background: var(--tissue); box-shadow: inset 0 0 0 2px var(--string);
-}
-.tag:hover, .tag:focus-visible { transform: rotate(-2.5deg); }
-.tag-price { font-family: var(--display); font-size: 2.3rem; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
-.tag-name { font-family: var(--display); font-size: 1.4rem; line-height: 1.15; margin-top: 4px; }
-.tag-blurb { color: var(--pine-soft); font-size: .98rem; }
-.tag-count { margin-top: auto; padding-top: 10px; font-size: .88rem; font-weight: 600; color: var(--ribbon); }
+.hold:hover { background: radial-gradient(ellipse 80% 55% at 50% 38%, rgba(242, 193, 78, .22), transparent 70%); }
+.hold-text { display: grid; gap: 2px; justify-items: center; }
+.hold-price { font-family: var(--display); font-size: 2.2rem; line-height: 1; color: var(--gold); text-shadow: 0 0 14px rgba(242, 193, 78, .5); }
+.hold-name { font-family: var(--display); font-size: 1.55rem; line-height: 1.05; color: var(--bone); }
+.hold-blurb { color: var(--mist); font-size: .98rem; max-width: 28ch; }
+.hold-count { margin-top: 4px; font-size: .88rem; font-weight: 800; color: var(--gold-hi); }
 @media (max-width: 560px) {
-  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 12px; padding-top: 28px; }
-  .tag { padding: 38px 14px 16px; min-height: 0; }
-  .tag-price { font-size: 1.8rem; }
-  .tag-name { font-size: 1.15rem; }
-  .tag-blurb { font-size: .9rem; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 10px; }
+  .hold-price { font-size: 1.7rem; } .hold-name { font-size: 1.2rem; } .hold-blurb { font-size: .88rem; }
 }
 
-/* ---------- basket dialog ---------- */
+/* ---------- dialog ---------- */
 dialog {
-  width: min(680px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); border: 0; padding: 0;
-  border-radius: 18px; background: var(--paper); color: var(--pine);
+  width: min(680px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); border: 4px solid var(--gold); padding: 0;
+  border-radius: 22px; background: linear-gradient(180deg, var(--night-2), var(--night)); color: var(--bone);
+  box-shadow: 0 0 80px rgba(242, 193, 78, .35);
 }
-dialog::backdrop { background: rgba(10, 30, 26, .55); }
-.dlg { padding: clamp(20px, 4vw, 34px); }
+dialog::backdrop { background: rgba(2, 8, 12, .75); }
+.dlg { padding: clamp(18px, 4vw, 30px); }
+.dlg-chest { width: min(280px, 70%); margin: -6px auto 0; container-type: inline-size; }
 .dlg-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
-.dlg h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); }
-.dlg p { margin: 6px 0 0; color: var(--pine-soft); }
-#dlg-total { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+.dlg h2 { font-size: clamp(2rem, 5vw, 2.8rem); color: var(--gold); line-height: 1; }
+.dlg p { margin: 6px 0 0; color: var(--parch); }
+#dlg-total { color: var(--gold-hi); font-weight: 700; }
 .close {
-  appearance: none; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--pine);
-  width: 40px; height: 40px; border-radius: 50%; font-size: 1.3rem; line-height: 1; flex: none;
+  appearance: none; cursor: pointer; border: 2px solid var(--gold-lo); background: transparent; color: var(--gold);
+  width: 42px; height: 42px; border-radius: 50%; font-size: 1.4rem; line-height: 1; flex: none;
 }
 
 /* ---------- how + footer ---------- */
-.how { border-top: 1px solid var(--line); padding-block: 48px; display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.how h3 { font-size: 1.35rem; margin-bottom: 6px; }
-.how p { margin: 0; color: var(--pine-soft); max-width: 40ch; }
-footer { border-top: 1px solid var(--line); padding-block: 26px 40px; color: var(--pine-soft); font-size: .9rem; }
-footer p { margin: 0 0 6px; max-width: 70ch; }
+.how { border-top: 1px solid rgba(242, 193, 78, .25); padding-block: 44px; display: grid; gap: 26px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.how h3 { font-size: 1.7rem; color: var(--gold); margin-bottom: 4px; }
+.how p { margin: 0; color: var(--parch); max-width: 40ch; }
+footer { border-top: 1px solid rgba(242, 193, 78, .25); padding-block: 24px 40px; color: var(--mist); font-size: .9rem; }
+footer p { margin: 0 0 6px; max-width: 72ch; }
 
-@media (prefers-reduced-motion: reduce) { .tag { transition: none; } .tag:hover { transform: none; } }
+/* coin-burst canvas */
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
+@media (max-width: 820px) { .lever, .lever-base { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cabinet::before, .cabinet::after, .glint, .cabinet.win .reel { animation: none; }
+  .glint { opacity: .8; }
+  .lid, .hoard, .loot-item, .chest-glow { transition: none; }
+}
 </style>
 </head>
 <body>
+<canvas id="fx" aria-hidden="true"></canvas>
 <div class="wrap">
   <header class="top">
-    <a class="logo" href="/">Treasure<span>.gift</span></a>
-    <nav><a href="#baskets">Browse baskets</a></nav>
+    <a class="logo gilt" href="/">Treasure.gift</a>
+    <button class="sound" id="sound" type="button" aria-pressed="true">Sound on</button>
   </header>
 
   <section class="hero">
-    <h1>Gift baskets for the people you'd search the world for.</h1>
-    <p class="lede">Tell us who it's for, what they love, and what you want to spend. We'll fill a basket with gifts you can order on Amazon today.</p>
+    <h1 class="gilt">Pull the lever.<br>Win the perfect gift.</h1>
+    <p class="lede">Tell us who it's for, what they love, and what you'll spend. The reels pick a chest of gifts you can order on Amazon today.</p>
 
-    <form class="writer" id="search" autocomplete="off">
-      <label for="q">To:</label>
-      <div class="writer-row">
-        <textarea id="q" name="q" rows="2" maxlength="300" placeholder="My dad. Loves grilling and old westerns. About $150."></textarea>
-        <button class="btn" id="go" type="submit">Fill my basket</button>
+    <form class="cabinet" id="search" autocomplete="off">
+      <div class="reels" aria-hidden="true">
+        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
+        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
+        <div class="reel"><div class="strip"></div><span class="payline"></span></div>
       </div>
-      <p class="status" id="status" role="status"></p>
+      <button class="lever" id="lever" type="submit" aria-label="Pull the lever to fill the chest" tabindex="-1"></button>
+      <span class="lever-base" aria-hidden="true"></span>
+      <div class="slip">
+        <label for="q">Who's the treasure for?</label>
+        <div class="slip-row">
+          <textarea id="q" name="q" rows="2" maxlength="300" placeholder="My dad. Loves grilling and old westerns. About $150."></textarea>
+          <button class="spin" id="go" type="submit">Fill the chest</button>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </div>
     </form>
 
     <div class="examples">
-      <p>Or start from one of these:</p>
       <button type="button" class="example">My sister just started running, around $75</button>
       <button type="button" class="example">Anniversary gift for my wife, $300</button>
       <button type="button" class="example">Coworker who loves coffee, under $40</button>
@@ -225,10 +374,8 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
 
   <section class="rack" id="baskets">
     <div class="rack-head">
-      <div>
-        <h2>Ready-made baskets</h2>
-        <p>Twenty-four baskets we've already packed. Pick one, then order each gift on Amazon.</p>
-      </div>
+      <h2 class="gilt">The treasure hold</h2>
+      <p>Twenty-four chests, already packed. Hover to look inside, tap to see every gift.</p>
       <div class="filters">
         <div class="seg" role="group" aria-label="Who it's for">
           <button type="button" data-who="her" aria-pressed="true">For her</button>
@@ -248,8 +395,8 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
 
   <section class="how">
     <div><h3>Describe them</h3><p>A sentence is enough. Mention their hobbies, who they are to you, and your budget.</p></div>
-    <div><h3>Get a basket</h3><p>We pick three to five gifts that fit together and fit the budget.</p></div>
-    <div><h3>Order on Amazon</h3><p>Each gift opens on Amazon, already filtered to the right price range.</p></div>
+    <div><h3>Pull the lever</h3><p>Our AI packs a chest of three to five gifts that fit together and fit the budget.</p></div>
+    <div><h3>Claim your loot</h3><p>Each gift opens on Amazon, already filtered to the right price range.</p></div>
   </section>
 
   <footer>
@@ -260,6 +407,7 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
 
 <dialog id="basket-dialog" aria-labelledby="dlg-title">
   <div class="dlg">
+    <div class="dlg-chest" id="dlg-chest"></div>
     <div class="dlg-top">
       <div>
         <h2 id="dlg-title"></h2>
@@ -273,6 +421,7 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
 </dialog>
 
 <script src="baskets.js"></script>
+<script src="fx.js"></script>
 <script src="app.js"></script>
 <script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
 </body>

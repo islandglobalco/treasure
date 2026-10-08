@@ -11,11 +11,12 @@ Rules:
 - Pick generic, widely available product types that Amazon sells from many brands. Do not name specific brands or model numbers.
 - "search" is a short Amazon search phrase (2 to 6 words) that will find that item.
 - "price" is a realistic typical price in whole US dollars.
+- "emoji" is one emoji that best depicts the item.
 - "why" is one short sentence (under 14 words) on why it suits this person.
 - "title" is a warm 2 to 5 word basket name. "note" is one sentence about the basket.
 - Never include alcohol, weapons, tobacco, or adult products. If the request is not about choosing a gift, build a general-interest basket.
 Respond with JSON only, no prose, in exactly this shape:
-{"title":"","note":"","items":[{"name":"","search":"","price":0,"why":""}]}`;
+{"title":"","note":"","items":[{"name":"","search":"","price":0,"emoji":"","why":""}]}`;
 
 // Very small per-instance rate limit: 8 requests per minute per IP.
 const hits = new Map();
@@ -63,6 +64,7 @@ export default async function handler(req, res) {
       search: String(i.search || i.name || "").slice(0, 80),
       price: Math.max(1, Math.round(Number(i.price) || 25)),
       why: String(i.why || "").slice(0, 140),
+      emoji: String(i.emoji || "").slice(0, 8),
     })).filter((i) => i.name && i.search);
     if (!items.length) return res.status(502).json({ error: "No basket came back." });
     res.setHeader("Cache-Control", "no-store");

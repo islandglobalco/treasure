@@ -21,10 +21,78 @@
     });
   }
 
+  // ---------- Item icons ----------
+  // Each gift is drawn as a gilded icon in the chest. If an item ever carries
+  // an `img` (e.g. from Amazon's Product Advertising API), the photo is used instead.
+  var ICONS = [
+    [/sock/i, "🧦"], [/candle/i, "🕯️"], [/tea\b/i, "🍵"], [/sleep mask|eye mask/i, "🌙"], [/sheet mask|face mask|led/i, "✨"],
+    [/roller|gua sha|massage(?! gun)/i, "💆"], [/bath bomb|bath pillow|bath/i, "🛁"], [/scrunch|hair/i, "🎀"],
+    [/book light|lamp|light\b/i, "💡"], [/journal|notebook|sketchbook/i, "📓"], [/bookmark/i, "🔖"], [/cookbook|recipe book|book|e-reader|reader/i, "📖"],
+    [/robe|pajama/i, "👘"], [/diffuser|essential oil|aroma/i, "🌸"], [/pour-over|coffee|espresso|grinder|bean/i, "☕"],
+    [/frother|milk/i, "🥛"], [/herb|garden|plant/i, "🌿"], [/planter/i, "🪴"], [/glove/i, "🧤"], [/shear|scissor/i, "✂️"],
+    [/yoga|foam roller/i, "🧘"], [/massage gun/i, "💪"], [/water bottle|tumbler|bottle/i, "💧"], [/band|dumbbell|weight/i, "🏋️"],
+    [/dutch oven|pot\b|griddle|skillet|pan\b/i, "🍳"], [/olive oil|oil/i, "🫒"], [/apron/i, "🧑‍🍳"], [/spoon|utensil/i, "🥄"],
+    [/earbud|headphone|headset/i, "🎧"], [/packing cube|luggage|carry-on|duffel|bag/i, "🧳"], [/passport/i, "🛂"],
+    [/jewel|ring|necklace|bracelet/i, "💍"], [/skincare|lotion|serum/i, "🧴"], [/pillowcase|pillow|blanket/i, "🛏️"],
+    [/cashmere|scarf|wrap/i, "🧣"], [/photo frame|frame/i, "🖼️"], [/instant camera|camera/i, "📸"], [/film/i, "🎞️"], [/album/i, "📔"],
+    [/grill tool|bbq|grill/i, "🍖"], [/rub|spice|salt/i, "🧂"], [/thermometer/i, "🌡️"], [/poker|chip/i, "🎰"], [/card game|cards/i, "🃏"],
+    [/game|controller|gaming/i, "🎮"], [/decanter|wine/i, "🍷"], [/whiskey glass|rocks glass|glasses/i, "🥃"], [/stone|ice/i, "🧊"],
+    [/desk mat|mouse pad/i, "🖱️"], [/charg|power bank/i, "🔋"], [/cable/i, "🔌"], [/multitool|tool/i, "🔧"], [/hammock/i, "🏝️"],
+    [/headlamp|flashlight/i, "🔦"], [/camp mug|mug/i, "☕"], [/trimmer|razor/i, "🪒"], [/beard|grooming/i, "🧔"], [/shaving|soap/i, "🧼"],
+    [/shaker|cocktail/i, "🍸"], [/bitters/i, "🧪"], [/protein/i, "🥤"], [/turntable|vinyl|record/i, "💿"], [/speaker/i, "🔊"],
+    [/crate|storage|box/i, "📦"], [/clean/i, "🧽"], [/knife/i, "🔪"], [/butcher|cutting board|board/i, "🪵"], [/wood chip|smok/i, "🔥"],
+    [/watch/i, "⌚"], [/wallet/i, "👛"], [/key/i, "🔑"], [/golf/i, "⛳"], [/binocular/i, "🔭"], [/fish/i, "🎣"], [/dog|cat|pet/i, "🐾"],
+    [/paint|watercolor|easel|pencil/i, "🎨"], [/guitar/i, "🎸"], [/baby|swaddle|diaper/i, "🍼"], [/noise machine/i, "🔈"],
+    [/adapter/i, "🔌"], [/tracker/i, "📍"], [/smart plug|smart/i, "🏠"], [/running|sport/i, "👟"], [/gift card/i, "💳"],
+  ];
+  function iconFor(it) {
+    if (it.e) return it.e;
+    for (var i = 0; i < ICONS.length; i++) if (ICONS[i][0].test(it.n)) return ICONS[i][1];
+    return "🎁";
+  }
+  function glyph(it) {
+    return it.img
+      ? '<img src="' + esc(it.img) + '" alt="" loading="lazy">'
+      : '<span aria-hidden="true">' + iconFor(it) + "</span>";
+  }
+
+  // ---------- The treasure chest ----------
+  // Items sit on a heap of coins and gems; the lid stands open and swings
+  // further back on hover while the loot rises.
+  var SPOTS = {
+    1: [[50, 34, 0, 1.25]],
+    2: [[34, 30, -10, 1.1], [66, 34, 9, 1.15]],
+    3: [[24, 26, -12, 1], [50, 40, 0, 1.2], [76, 26, 11, 1]],
+    4: [[20, 22, -14, .95], [41, 40, -4, 1.12], [62, 38, 6, 1.08], [82, 22, 13, .95]],
+    5: [[16, 20, -16, .9], [34, 36, -6, 1.05], [52, 46, 2, 1.15], [70, 34, 8, 1.02], [86, 18, 15, .88]],
+  };
+  var GLINTS = [[12, 58, 0], [31, 78, 1.1], [57, 88, .4], [74, 70, 1.7], [90, 52, .8], [46, 62, 2.3]];
+
+  function chest(items, opts) {
+    var list = items.slice(0, 5);
+    var spots = SPOTS[list.length] || SPOTS[5];
+    var loot = list.map(function (it, i) {
+      var s = spots[i];
+      return '<span class="loot-item" style="--x:' + s[0] + "%;--y:" + s[1] + "%;--r:" + s[2] + "deg;--k:" + s[3] + ";--d:" + (i * 0.06) + 's">' + glyph(it) + "</span>";
+    }).join("");
+    var glints = GLINTS.map(function (g) {
+      return '<i class="glint" style="--x:' + g[0] + "%;--y:" + g[1] + "%;--t:" + g[2] + 's"></i>';
+    }).join("");
+    return '<span class="chest' + (opts && opts.big ? " chest-big" : "") + '" aria-hidden="true">' +
+      '<span class="chest-glow"></span>' +
+      '<span class="lid"><span class="lid-out"></span><span class="lid-in"></span></span>' +
+      '<span class="hoard"><span class="coins"></span>' +
+        '<i class="gem gem-ruby"></i><i class="gem gem-emerald"></i><i class="gem gem-sapphire"></i><i class="gem gem-diamond"></i>' +
+        loot + glints + "</span>" +
+      '<span class="box"><span class="lock"></span></span>' +
+      "</span>";
+  }
+
   // ---------- Basket rendering ----------
   function itemRows(items) {
     return items.map(function (it) {
       return '<li class="item">' +
+        '<span class="item-icon">' + glyph(it) + "</span>" +
         '<div class="item-text"><span class="item-name">' + esc(it.n) + "</span>" +
         (it.why ? '<span class="item-why">' + esc(it.why) + "</span>" : "") + "</div>" +
         '<span class="item-price">about ' + money(it.p) + "</span>" +
@@ -39,17 +107,20 @@
       return b.for === state.who && (!state.tier || b.tier === state.tier);
     });
     grid.innerHTML = list.map(function (b) {
-      return '<button class="tag" type="button" data-id="' + b.id + '">' +
-        '<span class="tag-price">' + money(total(b.items)) + "</span>" +
-        '<span class="tag-name">' + esc(b.name) + "</span>" +
-        '<span class="tag-blurb">' + esc(b.blurb) + "</span>" +
-        '<span class="tag-count">' + b.items.length + " gifts inside</span>" +
-        "</button>";
+      return '<button class="hold" type="button" data-id="' + b.id + '">' +
+        chest(b.items) +
+        '<span class="hold-text">' +
+          '<span class="hold-price">' + money(total(b.items)) + "</span>" +
+          '<span class="hold-name">' + esc(b.name) + "</span>" +
+          '<span class="hold-blurb">' + esc(b.blurb) + "</span>" +
+          '<span class="hold-count">' + b.items.length + " gifts inside</span>" +
+        "</span></button>";
     }).join("");
   }
 
   function openBasket(b) {
     var d = document.getElementById("basket-dialog");
+    document.getElementById("dlg-chest").innerHTML = chest(b.items, { big: true });
     document.getElementById("dlg-title").textContent = b.name;
     document.getElementById("dlg-blurb").textContent = b.blurb;
     document.getElementById("dlg-total").textContent = "About " + money(total(b.items)) + " in all";
@@ -175,7 +246,7 @@
   function normalizeAI(data) {
     if (!data || !Array.isArray(data.items) || !data.items.length) return null;
     var items = data.items.slice(0, 6).map(function (i) {
-      return { n: String(i.name || ""), q: String(i.search || i.name || ""), p: Number(i.price) || 25, why: i.why ? String(i.why) : "" };
+      return { n: String(i.name || ""), q: String(i.search || i.name || ""), p: Number(i.price) || 25, why: i.why ? String(i.why) : "", e: i.emoji ? String(i.emoji).slice(0, 8) : "" };
     }).filter(function (i) { return i.n && i.q; });
     if (!items.length) return null;
     return { title: String(data.title || "Your basket"), note: String(data.note || ""), items: items };
@@ -184,29 +255,68 @@
   function renderResult(r, query) {
     var box = document.getElementById("result");
     box.innerHTML =
-      '<div class="result-head"><h2>' + esc(r.title) + "</h2>" +
+      '<div class="result-chest">' + chest(r.items, { big: true }) + "</div>" +
+      '<div class="result-body"><div class="result-head"><h2>' + esc(r.title) + "</h2>" +
       '<p class="result-total">About ' + money(total(r.items)) + " in all</p></div>" +
       (r.note ? '<p class="result-note">' + esc(r.note) + "</p>" : "") +
       '<ul class="items">' + itemRows(r.items) + "</ul>" +
       '<p class="result-foot">For: ' + esc(query) + ' <button type="button" class="linkish" id="reroll">Try another mix</button></p>';
     box.hidden = false;
     document.getElementById("reroll").addEventListener("click", function () { runSearch(query); });
-    box.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
 
+  var spinning = false;
   function runSearch(query) {
+    if (spinning) return;
+    spinning = true;
+    var FX = window.FX;
     var btn = document.getElementById("go");
     var status = document.getElementById("status");
-    btn.disabled = true; btn.textContent = "Filling your basket…"; status.textContent = "";
-    var done = function (r) { btn.disabled = false; btn.textContent = "Fill my basket"; renderResult(r, query); };
+    var cab = document.getElementById("search");
+    var lever = document.getElementById("lever");
+    var smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    btn.disabled = true; btn.textContent = "Spinning…"; status.textContent = "";
+    cab.classList.remove("win");
+    var r0 = cab.getBoundingClientRect();
+    if (r0.top < 0 || r0.bottom > innerHeight) cab.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
+    lever.classList.add("pulled"); setTimeout(function () { lever.classList.remove("pulled"); }, 450);
+    if (FX) { FX.sfx.lever(); FX.reels.start(); }
+
+    var minSpin = new Promise(function (res) { setTimeout(res, smooth ? 1500 : 0); });
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
-    fetch("/api/curate", {
+    var curate = fetch("/api/curate", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: query }), signal: ctrl ? ctrl.signal : undefined,
     }).then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) { clearTimeout(timer); done(normalizeAI(data) || localCurate(query)); })
-      .catch(function () { clearTimeout(timer); done(localCurate(query)); });
+      .then(function (data) { return normalizeAI(data) || localCurate(query); })
+      .catch(function () { return localCurate(query); })
+      .then(function (r) { clearTimeout(timer); return r; });
+
+    Promise.all([curate, minSpin]).then(function (v) {
+      var r = v[0];
+      var finals = r.items.slice(0, 3).map(function (it) { return it.img ? { img: it.img } : { e: iconFor(it) }; });
+      return (FX ? FX.reels.stop(finals) : Promise.resolve()).then(function () { return r; });
+    }).then(function (r) {
+      cab.classList.add("win");
+      if (FX) {
+        FX.sfx.jackpot();
+        var rr = cab.querySelector(".reels").getBoundingClientRect();
+        FX.burst(rr.left + rr.width / 2, rr.top + rr.height / 2, 90);
+      }
+      status.textContent = "Jackpot! Your chest is packed below.";
+      setTimeout(function () {
+        renderResult(r, query);
+        var box = document.getElementById("result");
+        box.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+        setTimeout(function () {
+          var c = box.querySelector(".result-chest").getBoundingClientRect();
+          if (FX) { FX.burst(c.left + c.width / 2, c.top + c.height * 0.45, 50); FX.sfx.creak(); }
+        }, smooth ? 650 : 0);
+        btn.disabled = false; btn.textContent = "Fill the chest"; spinning = false;
+        setTimeout(function () { cab.classList.remove("win"); }, 1600);
+      }, smooth ? 900 : 0);
+    });
   }
 
   // ---------- Wire up ----------
@@ -251,13 +361,33 @@
     });
 
     document.getElementById("grid").addEventListener("click", function (e) {
-      var t = e.target.closest(".tag");
+      var t = e.target.closest(".hold");
       if (!t) return;
       var b = window.BASKETS.find(function (x) { return x.id === t.getAttribute("data-id"); });
-      if (b) openBasket(b);
+      if (b) {
+        openBasket(b);
+        // The dialog sits in the top layer, so the effects canvas moves inside it while it's open.
+        document.getElementById("basket-dialog").appendChild(document.getElementById("fx"));
+        if (window.FX) {
+          window.FX.sfx.jackpot();
+          var c = document.getElementById("dlg-chest").getBoundingClientRect();
+          window.FX.burst(c.left + c.width / 2, c.top + c.height * 0.5, 45);
+        }
+      }
     });
 
+    var grid = document.getElementById("grid");
+    grid.addEventListener("pointerover", function (e) {
+      var h = e.target.closest(".hold");
+      if (h && !h.contains(e.relatedTarget) && window.FX) window.FX.sfx.creak();
+    });
+    var snd = document.getElementById("sound");
+    function paintSound() { var on = window.FX ? window.FX.soundOn : false; snd.setAttribute("aria-pressed", String(on)); snd.textContent = on ? "Sound on" : "Sound off"; }
+    paintSound();
+    snd.addEventListener("click", function () { if (window.FX) window.FX.setSound(!window.FX.soundOn); paintSound(); });
+
     var dlg = document.getElementById("basket-dialog");
+    dlg.addEventListener("close", function () { document.body.insertBefore(document.getElementById("fx"), document.body.firstChild); });
     document.getElementById("dlg-close").addEventListener("click", function () { dlg.close ? dlg.close() : dlg.removeAttribute("open"); });
     dlg.addEventListener("click", function (e) { if (e.target === dlg && dlg.close) dlg.close(); });
   }
