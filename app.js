@@ -24,36 +24,63 @@
   // ---------- Item icons ----------
   // Each gift is drawn as a gilded icon in the chest. If an item ever carries
   // an `img` (e.g. from Amazon's Product Advertising API), the photo is used instead.
+  // Each gift maps to a Midjourney render in img/gifts/<key>.png (transparent PNG).
+  // The emoji is the fallback if a render is missing.
   var ICONS = [
-    [/sock/i, "🧦"], [/candle/i, "🕯️"], [/tea\b/i, "🍵"], [/sleep mask|eye mask/i, "🌙"], [/sheet mask|face mask|led/i, "✨"],
-    [/roller|gua sha|massage(?! gun)/i, "💆"], [/bath bomb|bath pillow|bath/i, "🛁"], [/scrunch|hair/i, "🎀"],
-    [/book light|lamp|light\b/i, "💡"], [/journal|notebook|sketchbook/i, "📓"], [/bookmark/i, "🔖"], [/cookbook|recipe book|book|e-reader|reader/i, "📖"],
-    [/robe|pajama/i, "👘"], [/diffuser|essential oil|aroma/i, "🌸"], [/pour-over|coffee|espresso|grinder|bean/i, "☕"],
-    [/frother|milk/i, "🥛"], [/herb|garden|plant/i, "🌿"], [/planter/i, "🪴"], [/glove/i, "🧤"], [/shear|scissor/i, "✂️"],
-    [/yoga|foam roller/i, "🧘"], [/massage gun/i, "💪"], [/water bottle|tumbler|bottle/i, "💧"], [/band|dumbbell|weight/i, "🏋️"],
-    [/dutch oven|pot\b|griddle|skillet|pan\b/i, "🍳"], [/olive oil|oil/i, "🫒"], [/apron/i, "🧑‍🍳"], [/spoon|utensil/i, "🥄"],
-    [/earbud|headphone|headset/i, "🎧"], [/packing cube|luggage|carry-on|duffel|bag/i, "🧳"], [/passport/i, "🛂"],
-    [/jewel|ring|necklace|bracelet/i, "💍"], [/skincare|lotion|serum/i, "🧴"], [/pillowcase|pillow|blanket/i, "🛏️"],
-    [/cashmere|scarf|wrap/i, "🧣"], [/photo frame|frame/i, "🖼️"], [/instant camera|camera/i, "📸"], [/film/i, "🎞️"], [/album/i, "📔"],
-    [/grill tool|bbq|grill/i, "🍖"], [/rub|spice|salt/i, "🧂"], [/thermometer/i, "🌡️"], [/poker|chip/i, "🎰"], [/card game|cards/i, "🃏"],
-    [/game|controller|gaming/i, "🎮"], [/decanter|wine/i, "🍷"], [/whiskey glass|rocks glass|glasses/i, "🥃"], [/stone|ice/i, "🧊"],
-    [/desk mat|mouse pad/i, "🖱️"], [/charg|power bank/i, "🔋"], [/cable/i, "🔌"], [/multitool|tool/i, "🔧"], [/hammock/i, "🏝️"],
-    [/headlamp|flashlight/i, "🔦"], [/camp mug|mug/i, "☕"], [/trimmer|razor/i, "🪒"], [/beard|grooming/i, "🧔"], [/shaving|soap/i, "🧼"],
-    [/shaker|cocktail/i, "🍸"], [/bitters/i, "🧪"], [/protein/i, "🥤"], [/turntable|vinyl|record/i, "💿"], [/speaker/i, "🔊"],
-    [/crate|storage|box/i, "📦"], [/clean/i, "🧽"], [/knife/i, "🔪"], [/butcher|cutting board|board/i, "🪵"], [/wood chip|smok/i, "🔥"],
-    [/watch/i, "⌚"], [/wallet/i, "👛"], [/key/i, "🔑"], [/golf/i, "⛳"], [/binocular/i, "🔭"], [/fish/i, "🎣"], [/dog|cat|pet/i, "🐾"],
-    [/paint|watercolor|easel|pencil/i, "🎨"], [/guitar/i, "🎸"], [/baby|swaddle|diaper/i, "🍼"], [/noise machine/i, "🔈"],
-    [/adapter/i, "🔌"], [/tracker/i, "📍"], [/smart plug|smart/i, "🏠"], [/running|sport/i, "👟"], [/gift card/i, "💳"],
+    [/sock/i, "🧦", "socks"], [/candle/i, "🕯️", "candle"], [/tea\b/i, "🍵", "tea"], [/sleep mask|eye mask/i, "🌙", "sleepmask"],
+    [/sheet mask|face mask|led|skincare|lotion|serum|roller|gua sha/i, "✨", "skincare"], [/bath/i, "🛁", "bath"], [/scrunch|hair/i, "🎀", "bow"],
+    [/book light|lamp|light\b/i, "💡", "lamp"], [/journal|notebook|sketchbook|album/i, "📓", "journal"], [/bookmark|cookbook|recipe book|book|e-reader|reader/i, "📖", "book"],
+    [/robe|pajama/i, "👘", "robe"], [/diffuser|essential oil|aroma/i, "🌸", "diffuser"], [/pour-over|coffee|espresso|grinder|bean|frother|milk|mug/i, "☕", "coffee"],
+    [/herb|plant|planter/i, "🌿", "plant"], [/garden|glove|shear|scissor/i, "🧤", "garden"],
+    [/yoga|foam roller/i, "🧘", "yoga"], [/massage/i, "💪", "massage"], [/bitters/i, "🧪", "potion"], [/protein|shaker bottle/i, "💧", "bottle"], [/cocktail|shaker/i, "🍸", "cocktail"],
+    [/water bottle|tumbler|bottle/i, "💧", "bottle"], [/band|dumbbell|weight/i, "🏋️", "dumbbell"],
+    [/dutch oven|pot\b|griddle|skillet|pan\b/i, "🍳", "pot"], [/olive oil|oil/i, "🫒", "oil"], [/apron|spoon|utensil/i, "🧑‍🍳", "apron"],
+    [/earbud|headphone|headset/i, "🎧", "headphones"], [/packing cube|luggage|carry-on|duffel|bag/i, "🧳", "luggage"], [/passport/i, "🛂", "passport"],
+    [/jewel|ring|necklace|bracelet/i, "💍", "ring"], [/pillowcase|pillow|blanket/i, "🛏️", "pillow"],
+    [/cashmere|scarf|wrap/i, "🧣", "scarf"], [/photo frame|frame/i, "🖼️", "frame"], [/instant camera|camera|film/i, "📸", "camera"],
+    [/grill tool|bbq|grill/i, "🍖", "bbq"], [/rub|spice|salt/i, "🧂", "spice"], [/thermometer/i, "🌡️", "thermo"], [/poker|chip/i, "🎰", "chips"],
+    [/card game|cards/i, "🃏", "cards"], [/game|controller|gaming/i, "🎮", "gamepad"], [/whiskey|rocks glass|glasses|stone|ice/i, "🥃", "whiskey"], [/decanter|wine/i, "🍷", "wine"],
+    [/desk mat|mouse pad|charg|power bank|cable|adapter/i, "🔋", "charger"],
+    [/multitool|tool/i, "🔧", "tool"], [/hammock/i, "🏝️", "hammock"], [/headlamp|flashlight/i, "🔦", "flashlight"],
+    [/trimmer|razor/i, "🪒", "razor"], [/beard|grooming/i, "🧔", "beard"], [/shaving|soap/i, "🧼", "shaving"],
+    [/turntable/i, "💿", "turntable"], [/speaker|noise machine/i, "🔊", "speaker"], [/crate|storage|vinyl|record|clean/i, "📦", "crate"],
+    [/knife|butcher|cutting board|board/i, "🔪", "knife"], [/wood chip|smok/i, "🔥", "fire"],
+    [/watch/i, "⌚", "watch"], [/wallet/i, "👛", "wallet"], [/key/i, "🔑", "keys"], [/golf/i, "⛳", "golf"], [/binocular/i, "🔭", "binoculars"],
+    [/fish/i, "🎣", "fishing"], [/dog|cat|pet/i, "🐾", "pet"], [/paint|watercolor|easel|pencil|art/i, "🎨", "art"], [/guitar/i, "🎸", "guitar"],
+    [/baby|swaddle|diaper/i, "🍼", "baby"], [/tracker/i, "📍", "tracker"], [/running|sport|sneaker/i, "👟", "sneaker"], [/gift card/i, "💳", "giftcard"],
+    [/smart plug|smart/i, "🔊", "speaker"],
   ];
+  var ASSETS = window.TG_ASSETS || {};   // filled by assets.js: which renders exist
+  function iconRow(it) {
+    for (var i = 0; i < ICONS.length; i++) if (ICONS[i][0].test(it.n)) return ICONS[i];
+    return null;
+  }
   function iconFor(it) {
     if (it.e) return it.e;
-    for (var i = 0; i < ICONS.length; i++) if (ICONS[i][0].test(it.n)) return ICONS[i][1];
-    return "🎁";
+    var r = iconRow(it);
+    return r ? r[1] : "🎁";
   }
-  function glyph(it) {
-    return it.img
-      ? '<img src="' + esc(it.img) + '" alt="" loading="lazy">'
-      : '<span aria-hidden="true">' + iconFor(it) + "</span>";
+  function renderFor(it, v) {
+    if (it.img) return it.img;
+    var r = iconRow(it), key = r ? r[2] : "gift";
+    var n = (ASSETS.gifts || {})[key];
+    if (!n) return "";
+    return "img/gifts/" + key + "-" + ((v || 0) % n) + ".png";
+  }
+  // Give repeated categories in one basket different variants (Midjourney renders 4 per prompt).
+  function variants(items) {
+    var seen = {};
+    return items.map(function (it) {
+      var r = iconRow(it), k = r ? r[2] : "gift";
+      seen[k] = (seen[k] || 0) + 1;
+      return seen[k] - 1;
+    });
+  }
+  function glyph(it, v) {
+    var src = renderFor(it, v);
+    return src
+      ? '<img src="' + esc(src) + '" alt="" loading="lazy" draggable="false">'
+      : '<span class="emoji" aria-hidden="true">' + iconFor(it) + "</span>";
   }
 
   // ---------- The treasure chest ----------
@@ -295,7 +322,7 @@
 
     Promise.all([curate, minSpin]).then(function (v) {
       var r = v[0];
-      var finals = r.items.slice(0, 3).map(function (it) { return it.img ? { img: it.img } : { e: iconFor(it) }; });
+      var finals = r.items.slice(0, 3).map(function (it) { var src = renderFor(it); return src ? { img: src } : { e: iconFor(it) }; });
       return (FX ? FX.reels.stop(finals) : Promise.resolve()).then(function () { return r; });
     }).then(function (r) {
       cab.classList.add("win");
