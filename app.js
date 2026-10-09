@@ -13,6 +13,25 @@
     var hi = Math.round(p * 1.5) + 5;
     return "https://www.amazon.com/s?k=" + encodeURIComponent(q) + "&rh=p_36%3A" + lo * 100 + "-" + hi * 100 + (tag ? "&" + tag : "");
   }
+  // One link that drops every item with an ASIN into the shopper's Amazon cart, tagged.
+  // (Amazon's Associates add-to-cart form; the shopper confirms on Amazon.)
+  function cartUrl(items) {
+    var n = 0, parts = [];
+    items.forEach(function (it) {
+      if (!it.asin) return;
+      n++;
+      parts.push("ASIN." + n + "=" + encodeURIComponent(it.asin) + "&Quantity." + n + "=1");
+    });
+    if (!n) return "";
+    if (config.amazonTag) parts.push("AssociateTag=" + encodeURIComponent(config.amazonTag));
+    return "https://www.amazon.com/gp/aws/cart/add.html?" + parts.join("&");
+  }
+  function cartButton(items) {
+    var url = cartUrl(items);
+    if (!url) return "";
+    var n = items.filter(function (i) { return i.asin; }).length;
+    return '<a class="cart-all" href="' + url + '" target="_blank" rel="sponsored noopener">Add all ' + n + " to Amazon cart</a>";
+  }
   function total(items) { return items.reduce(function (s, i) { return s + i.p; }, 0); }
   function money(n) { return "$" + Math.round(n); }
   function esc(s) {
@@ -158,6 +177,7 @@
     document.getElementById("dlg-blurb").textContent = b.blurb;
     document.getElementById("dlg-total").textContent = "About " + money(total(b.items)) + " in all";
     document.getElementById("dlg-items").innerHTML = itemRows(b.items);
+    document.getElementById("dlg-cart").innerHTML = cartButton(b.items);
     if (d.showModal) d.showModal(); else d.setAttribute("open", "");
   }
 
@@ -227,6 +247,7 @@
       '<p class="result-total">About ' + money(total(r.items)) + " in all</p></div>" +
       (r.note ? '<p class="result-note">' + esc(r.note) + "</p>" : "") +
       '<ul class="items">' + itemRows(r.items) + "</ul>" +
+      '<div class="result-cart">' + cartButton(r.items) + "</div>" +
       '<p class="result-foot">For: ' + esc(query) + ' <button type="button" class="linkish" id="reroll">Try another mix</button></p>';
     box.hidden = false;
     document.getElementById("reroll").addEventListener("click", function () { runSearch(query); });

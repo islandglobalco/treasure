@@ -182,7 +182,17 @@ h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap
 .result-total { margin: 0; font-family: var(--display); font-size: 1.6rem; color: var(--gold-hi); }
 .result-note { color: var(--parch); margin: 6px 0 0; }
 .result-foot { margin: 16px 0 0; color: var(--mist); font-size: .95rem; overflow-wrap: anywhere; }
-.result-foot .linkish { margin-left: 10px; }
+.result-foot .cart-all {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; width: 100%;
+  padding: 15px 22px; border-radius: 12px; text-decoration: none; text-align: center;
+  font: 400 1.45rem/1 var(--display); color: #3a1d02;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-lo));
+  box-shadow: 0 4px 0 #6b4108, 0 10px 24px rgba(0, 0, 0, .4), inset 0 2px 0 rgba(255, 255, 255, .6);
+}
+.cart-all:hover { filter: brightness(1.07); }
+.cart-all:active { transform: translateY(3px); box-shadow: 0 1px 0 #6b4108, 0 4px 10px rgba(0, 0, 0, .35); }
+.dlg-cart:empty, .result-cart:empty { display: none; }
+.linkish { margin-left: 10px; }
 .linkish { appearance: none; background: none; border: 0; padding: 0; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
 
 .items { list-style: none; margin: 14px 0 0; padding: 0; }
@@ -357,6 +367,7 @@ footer p { margin: 0 0 6px; max-width: 72ch; }
       <button type="button" class="close" id="dlg-close" aria-label="Close">&times;</button>
     </div>
     <ul class="items" id="dlg-items"></ul>
+    <div class="dlg-cart" id="dlg-cart"></div>
   </div>
 </dialog>
 

@@ -16,7 +16,7 @@ window.BASKETS = [
   { id: "her-purse", for: "her", tier: 1, name: "Purse Essentials",
     blurb: "Small things she reaches for every day.",
     items: [
-      { n: "Tweezerman Slant Tweezer", q: "Tweezerman slant tweezer", p: 23, k: "tweezers", asin: "B000EMUDVK", img: "513GnZEcZCL" },
+      { n: "Tweezerman Petite Tweeze Set, with travel case", q: "Tweezerman Petite Tweeze Set", p: 25, k: "tweezers", asin: "B000WI1VU8", img: "71K8sR73RbL" },
       { n: "Kent handmade comb", q: "Kent handmade comb", p: 10, k: "comb", asin: "B002IZSBLU", img: "81tJUc1PQ5L" },
       { n: "Burt's Bees lip balm, 4 pack", q: "Burt's Bees lip balm 4 pack", p: 10, k: "lipbalm", asin: "B0054LHI5A", img: "91us9dUgRQL" },
     ] },
@@ -38,7 +38,7 @@ window.BASKETS = [
     items: [
       { n: "Tweezerman manicure kit", q: "Tweezerman manicure kit", p: 21, k: "manicure", asin: "B002HK2H1G", img: "71WPh1H6M3L" },
       { n: "Tangle Teezer detangling brush", q: "Tangle Teezer original detangling brush", p: 13, k: "brush", asin: "B00JJ7T2V8", img: "71bdN8BegYL" },
-      { n: "Tweezerman Slant Tweezer", q: "Tweezerman slant tweezer", p: 23, k: "tweezers", asin: "B000EMUDVK", img: "513GnZEcZCL" },
+      { n: "Tweezerman Petite Tweeze Set, with travel case", q: "Tweezerman Petite Tweeze Set", p: 25, k: "tweezers", asin: "B000WI1VU8", img: "71K8sR73RbL" },
       { n: "Kent handmade comb", q: "Kent handmade comb", p: 10, k: "comb", asin: "B002IZSBLU", img: "81tJUc1PQ5L" },
     ] },
   { id: "her-carry", for: "her", tier: 2, name: "Everyday Carry",
@@ -128,7 +128,7 @@ window.BASKETS = [
     blurb: "Trim, shave and tidy with tools that do the job.",
     items: [
       { n: "Philips Norelco OneBlade", q: "Philips Norelco OneBlade", p: 30, k: "shaver", asin: "B0BZQTSBWZ", img: "71GIIOqNSYL" },
-      { n: "Tweezerman Slant Tweezer", q: "Tweezerman slant tweezer", p: 23, k: "tweezers", asin: "B000EMUDVK", img: "513GnZEcZCL" },
+      { n: "Tweezerman Essential Grooming Kit for Men", q: "Tweezerman Essential Grooming Kit for Men", p: 36, k: "tweezers", asin: "B00I8H6FUG", img: "61QSKRniPNL" },
       { n: "Kent handmade comb", q: "Kent handmade comb men", p: 10, k: "comb", asin: "B002IZSBLU", img: "81tJUc1PQ5L" },
       { n: "Seki Edge nail clipper", q: "Seki Edge nail clipper", p: 18, k: "clippers", asin: "B000F35R00", img: "51XnmJJl-7L" },
     ] },
@@ -187,7 +187,7 @@ window.BASKETS = [
     blurb: "A top-tier shaver and the small tools that finish the job.",
     items: [
       { n: "Braun Series 9 electric shaver", q: "Braun Series 9 Pro electric shaver", p: 260, k: "shaver", asin: "B09B152YGK", img: "81Ljcn-FwcL" },
-      { n: "Tweezerman Slant Tweezer", q: "Tweezerman slant tweezer", p: 23, k: "tweezers", asin: "B000EMUDVK", img: "513GnZEcZCL" },
+      { n: "Tweezerman Essential Grooming Kit for Men", q: "Tweezerman Essential Grooming Kit for Men", p: 36, k: "tweezers", asin: "B00I8H6FUG", img: "61QSKRniPNL" },
       { n: "Kent handmade comb", q: "Kent handmade comb men", p: 10, k: "comb", asin: "B002IZSBLU", img: "81tJUc1PQ5L" },
       { n: "Seki Edge nail clipper", q: "Seki Edge nail clipper", p: 18, k: "clippers", asin: "B000F35R00", img: "51XnmJJl-7L" },
     ] },
