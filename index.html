@@ -32,14 +32,8 @@ html, body { overflow-x: clip; }
 body {
   margin: 0; color: var(--bone); font: 400 1.0625rem/1.5 var(--body);
   background-color: var(--night);
-  background-image:
-    radial-gradient(ellipse 60% 38% at 50% 34%, rgba(255, 196, 92, .22), transparent 70%),
-    linear-gradient(180deg, rgba(4, 14, 20, .35) 0%, rgba(4, 14, 20, .55) 420px, rgba(7, 26, 34, .96) 1000px, var(--night) 1300px),
-    url("img/scene/night.jpg");
-  background-size: auto, auto, max(100%, 1400px) auto;
-  background-position: center, center, center top;
-  background-repeat: no-repeat;
 }
+html::before { content: ""; position: fixed; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(3,9,13,.55), rgba(3,9,13,.78)), url("img/scene/env.jpg") center / cover no-repeat; filter: saturate(.9); }
 /* cinematic finish: edge vignette + fine film grain over everything, never blocking clicks */
 body::before, body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 40; }
 body::before { background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgba(0, 0, 0, .55) 100%); }
@@ -49,7 +43,7 @@ body::after {
 }
 /* warm god-rays behind the hero chest */
 .hero-chest::before {
-  content: ""; position: absolute; z-index: -1; left: -40%; right: -40%; top: -25%; bottom: 10%;
+  display: none; content: ""; position: absolute; z-index: -1; left: -40%; right: -40%; top: -25%; bottom: 10%;
   background: conic-gradient(from 180deg at 50% 70%, transparent 0deg, rgba(255, 210, 120, .14) 12deg, transparent 24deg, rgba(255, 210, 120, .10) 40deg, transparent 54deg, rgba(255, 210, 120, .13) 150deg, transparent 165deg, rgba(255, 210, 120, .09) 190deg, transparent 205deg, rgba(255, 210, 120, .12) 300deg, transparent 318deg, rgba(255, 210, 120, .1) 336deg, transparent 350deg);
   -webkit-mask: radial-gradient(ellipse 50% 60% at 50% 70%, #000 30%, transparent 75%); mask: radial-gradient(ellipse 50% 60% at 50% 70%, #000 30%, transparent 75%);
   filter: blur(6px); animation: rays 14s linear infinite; opacity: .9;
