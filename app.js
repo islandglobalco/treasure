@@ -119,24 +119,23 @@
   };
   var GLINTS = [[14, 18, 0], [30, 44, 1.1], [56, 58, .4], [72, 36, 1.7], [88, 20, .8], [46, 24, 2.3]];
 
+  // Photoreal chest renders: one per basket, plus the hero. Search results borrow the closest basket's render.
+  function pickImg(items) {
+    var names = items.map(function (i) { return String(i.n || "").toLowerCase(); });
+    var best = null, score = 0;
+    window.BASKETS.forEach(function (b) {
+      var n = 0;
+      b.items.forEach(function (it) { if (names.indexOf(String(it.n).toLowerCase()) > -1) n++; });
+      if (n > score) { score = n; best = b.id; }
+    });
+    return best || "hero";
+  }
   function chest(items, opts) {
-    var list = items.slice(0, 5);
-    var spots = SPOTS[list.length] || SPOTS[5];
-    var vs = variants(list);
-    var loot = list.map(function (it, i) {
-      var s = spots[i] || spots[spots.length - 1];
-      return '<span class="loot-item" style="--x:' + s[0] + "%;--y:" + s[1] + "%;--r:" + s[2] + "deg;--k:" + s[3] + ";--d:" + (i * 0.06) + 's">' + glyph(it, vs[i]) + "</span>";
-    }).join("");
-    var glints = GLINTS.map(function (g) {
-      return '<i class="glint" style="--x:' + g[0] + "%;--y:" + g[1] + "%;--t:" + g[2] + 's"></i>';
-    }).join("");
-    return '<span class="chest' + (opts && opts.big ? " chest-big" : "") + '" aria-hidden="true">' +
-      '<img class="c-back" src="img/scene/chest.webp" alt="" draggable="false">' +
-      '<span class="chest-glow"></span>' +
-      '<span class="hoard"><img class="c-gold" src="img/scene/gold.webp" alt="" draggable="false">' + loot + glints + "</span>" +
-      '<img class="c-front" src="img/scene/chest-front.webp" alt="" draggable="false">' +
-      '<img class="c-coins" src="img/scene/coins.webp" alt="" draggable="false">' +
-      "</span>";
+    opts = opts || {};
+    var id = opts.id || (items && items.length ? pickImg(items) : "hero");
+    return '<span class="chest' + (opts.big ? " chest-big" : "") + '" aria-hidden="true">' +
+      '<img class="shot" src="img/chests/' + id + '.jpg" alt="" width="1232" height="928" draggable="false"' + (opts.eager ? "" : ' loading="lazy"') + ">" +
+      '<span class="sheen"></span></span>';
   }
 
   // ---------- Basket rendering ----------
@@ -160,7 +159,7 @@
     });
     grid.innerHTML = list.map(function (b) {
       return '<button class="hold" type="button" data-id="' + b.id + '">' +
-        chest(b.items) +
+        chest(b.items, { id: b.id }) +
         '<span class="hold-text">' +
           '<span class="hold-price">' + money(total(b.items)) + "</span>" +
           '<span class="hold-name">' + esc(b.name) + "</span>" +
@@ -172,7 +171,7 @@
 
   function openBasket(b) {
     var d = document.getElementById("basket-dialog");
-    document.getElementById("dlg-chest").innerHTML = chest(b.items, { big: true });
+    document.getElementById("dlg-chest").innerHTML = chest(b.items, { big: true, id: b.id, eager: true });
     document.getElementById("dlg-title").textContent = b.name;
     document.getElementById("dlg-blurb").textContent = b.blurb;
     document.getElementById("dlg-total").textContent = "About " + money(total(b.items)) + " in all";
@@ -257,7 +256,7 @@
   var busy = false;
   function heroChest(items, closed) {
     var host = document.getElementById("hero-chest");
-    host.innerHTML = chest(items, { big: true });
+    host.innerHTML = chest(items, { big: true, eager: true });
     var c = host.querySelector(".chest");
     if (closed) c.classList.add("closed");
     return c;
